@@ -8,7 +8,8 @@ let state = {
         sessionCount: 0,
         interval: null,
         totalSeconds: 25 * 60,
-        currentSeconds: 25 * 60
+        currentSeconds: 25 * 60,
+        lastUpdateTime: null // Track when timer was last updated
     },
     settings: {
         workDuration: 25,
@@ -17,6 +18,7 @@ let state = {
         sessionsUntilLongBreak: 4,
         sound: true,
         notification: true,
+        notificationPermission: 'default', // Track permission state
         autoBreak: false,
         autoPomodoro: false
     },
@@ -37,12 +39,13 @@ let focusChart = null;
 document.addEventListener('DOMContentLoaded', function() {
     loadState();
     initializeTheme();
+    restoreTimerState(); // Restore timer if it was running
     updateDisplay();
     updateStatistics();
     updateSessionHistory();
     updateTaskList();
     initializeChart();
-    requestNotificationPermission();
+    initializeNotifications(); // Better notification handling
     
     // Update settings inputs
     document.getElementById('workDuration').value = state.settings.workDuration;
@@ -104,7 +107,9 @@ function toggleTimer() {
 
 function startTimer() {
     state.timer.isRunning = true;
+    state.timer.lastUpdateTime = Date.now();
     updateStartButton();
+    saveTimerState(); // Save immediately when starting
     
     state.timer.interval = setInterval(() => {
         if (state.timer.seconds === 0) {
@@ -118,15 +123,19 @@ function startTimer() {
             state.timer.seconds--;
         }
         state.timer.currentSeconds = state.timer.minutes * 60 + state.timer.seconds;
+        state.timer.lastUpdateTime = Date.now();
         updateDisplay();
         updateProgress();
+        saveTimerState(); // Save timer state every second
     }, 1000);
 }
 
 function pauseTimer() {
     state.timer.isRunning = false;
     clearInterval(state.timer.interval);
+    state.timer.lastUpdateTime = null;
     updateStartButton();
+    saveTimerState(); // Save when pausing
 }
 
 function resetTimer() {
@@ -136,8 +145,10 @@ function resetTimer() {
     state.timer.seconds = 0;
     state.timer.totalSeconds = duration * 60;
     state.timer.currentSeconds = duration * 60;
+    state.timer.lastUpdateTime = null;
     updateDisplay();
     updateProgress();
+    saveTimerState(); // Save reset state
 }
 
 function skipSession() {
@@ -147,6 +158,9 @@ function skipSession() {
 
 function completeSession() {
     pauseTimer();
+    
+    // Clear the timer state since session is complete
+    localStorage.removeItem('sphinxFocusTimerState');
     
     // Play sound if enabled
     if (state.settings.sound) {
@@ -477,7 +491,41 @@ function closeSettings() {
 }
 
 function toggleSetting(setting) {
-    state.settings[setting] = !state.settings[setting];
+    // Special handling for notification setting
+    if (setting === 'notification') {
+        if (!state.settings[setting] && 'Notification' in window) {
+            // Turning on notifications
+            if (Notification.permission === 'default') {
+                // Request permission first
+                Notification.requestPermission().then(permission => {
+                    state.settings.notificationPermission = permission;
+                    if (permission === 'granted') {
+                        state.settings.notification = true;
+                        updateToggleSwitch('notificationToggle', true);
+                    } else {
+                        // Permission denied, keep toggle off
+                        state.settings.notification = false;
+                        updateToggleSwitch('notificationToggle', false);
+                        showNotification('Permission Denied', 'Browser notifications require permission');
+                    }
+                    saveState();
+                });
+                return;
+            } else if (Notification.permission === 'granted') {
+                state.settings.notification = true;
+            } else {
+                // Permission was denied
+                showNotification('Permission Denied', 'Please enable notifications in browser settings');
+                return;
+            }
+        } else {
+            // Turning off notifications
+            state.settings.notification = false;
+        }
+    } else {
+        state.settings[setting] = !state.settings[setting];
+    }
+    
     updateToggleSwitch(setting + 'Toggle', state.settings[setting]);
     saveState();
 }
@@ -520,9 +568,91 @@ function showNotification(title, message) {
     }, 5000);
 }
 
-function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
+// Initialize notifications and check/restore permission state
+function initializeNotifications() {
+    if ('Notification' in window) {
+        // Update our stored permission state
+        state.settings.notificationPermission = Notification.permission;
+        
+        // Only request if we haven't asked before (permission is 'default')
+        // and notifications are enabled in settings
+        if (Notification.permission === 'default' && state.settings.notification) {
+            Notification.requestPermission().then(permission => {
+                state.settings.notificationPermission = permission;
+                saveState();
+                
+                // Update toggle if permission was denied
+                if (permission === 'denied') {
+                    state.settings.notification = false;
+                    updateToggleSwitch('notificationToggle', false);
+                }
+            });
+        }
+        
+        // If permission was previously granted but toggle is off, respect that
+        if (Notification.permission === 'granted' && state.settings.notification) {
+            updateToggleSwitch('notificationToggle', true);
+        }
+    }
+}
+
+// Save timer state separately for frequent updates
+function saveTimerState() {
+    const timerData = {
+        minutes: state.timer.minutes,
+        seconds: state.timer.seconds,
+        isRunning: state.timer.isRunning,
+        mode: state.timer.mode,
+        sessionCount: state.timer.sessionCount,
+        totalSeconds: state.timer.totalSeconds,
+        currentSeconds: state.timer.currentSeconds,
+        lastUpdateTime: state.timer.lastUpdateTime
+    };
+    localStorage.setItem('sphinxFocusTimerState', JSON.stringify(timerData));
+}
+
+// Restore timer state on page load
+function restoreTimerState() {
+    const savedTimer = localStorage.getItem('sphinxFocusTimerState');
+    if (savedTimer) {
+        const timerData = JSON.parse(savedTimer);
+        
+        // If timer was running, calculate elapsed time
+        if (timerData.isRunning && timerData.lastUpdateTime) {
+            const elapsed = Math.floor((Date.now() - timerData.lastUpdateTime) / 1000);
+            let remainingSeconds = timerData.currentSeconds - elapsed;
+            
+            // Check if timer should have completed
+            if (remainingSeconds <= 0) {
+                // Timer completed while page was closed
+                state.timer.minutes = 0;
+                state.timer.seconds = 0;
+                state.timer.isRunning = false;
+                completeSession();
+            } else {
+                // Update timer with elapsed time
+                state.timer.minutes = Math.floor(remainingSeconds / 60);
+                state.timer.seconds = remainingSeconds % 60;
+                state.timer.currentSeconds = remainingSeconds;
+                state.timer.totalSeconds = timerData.totalSeconds;
+                state.timer.mode = timerData.mode;
+                state.timer.sessionCount = timerData.sessionCount;
+                
+                // Resume timer
+                startTimer();
+            }
+        } else {
+            // Timer was paused, just restore the state
+            state.timer.minutes = timerData.minutes;
+            state.timer.seconds = timerData.seconds;
+            state.timer.mode = timerData.mode;
+            state.timer.sessionCount = timerData.sessionCount;
+            state.timer.totalSeconds = timerData.totalSeconds;
+            state.timer.currentSeconds = timerData.currentSeconds;
+        }
+        
+        updateTimerMode();
+        updateProgress();
     }
 }
 
@@ -576,11 +706,12 @@ function loadState() {
                 ...loadedState.timer,
                 isRunning: false,
                 interval: null
+            },
+            settings: {
+                ...state.settings,
+                ...loadedState.settings
             }
         };
-        
-        // Reset timer to initial state
-        resetTimer();
         
         // Check if today's stats need to be reset
         const today = new Date().toDateString();
@@ -650,6 +781,7 @@ function handleImport(event) {
 function clearAllData() {
     if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
         localStorage.removeItem('sphinxFocusState');
+        localStorage.removeItem('sphinxFocusTimerState');
         localStorage.removeItem('sphinxFocusTheme');
         location.reload();
     }
