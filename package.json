@@ -1,0 +1,32 @@
+{
+  "name": "sphinx-focus",
+  "version": "1.0.0",
+  "description": "A beautiful, feature-rich Pomodoro timer application designed to help you maintain focus and boost productivity. Built with vanilla JavaScript, HTML, and CSS for maximum performance and portability.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run clean && npm run copy",
+    "clean": "rm -rf dist",
+    "copy": "mkdir -p dist && cp index.html styles.css app.js dist/",
+    "serve": "http-server dist -p 8080",
+    "dev": "http-server . -p 3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nostromo-618/sphinx-focus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nostromo-618/sphinx-focus/issues"
+  },
+  "homepage": "https://github.com/Nostromo-618/sphinx-focus#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.2",
+    "http-server": "^14.1.1",
+    "typescript": "^5.9.3"
+  }
+}
