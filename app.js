@@ -78,23 +78,86 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Theme Management
 function initializeTheme() {
-    const savedTheme = localStorage.getItem('sphinxFocusTheme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeToggle(savedTheme);
+    // Check for saved theme preference first
+    const savedThemePreference = localStorage.getItem('sphinxFocusThemePreference') || 'system';
+    
+    applyTheme(savedThemePreference);
+    updateThemeIcon(savedThemePreference);
+    
+    // Listen for system theme changes if preference is 'system'
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        const currentPreference = localStorage.getItem('sphinxFocusThemePreference') || 'system';
+        if (currentPreference === 'system') {
+            const systemTheme = e.matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', systemTheme);
+        }
+    });
 }
 
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('sphinxFocusTheme', newTheme);
-    updateThemeToggle(newTheme);
+function applyTheme(preference) {
+    let actualTheme;
+    
+    if (preference === 'system') {
+        // Use system preference
+        actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } else {
+        // Use user's explicit choice
+        actualTheme = preference;
+    }
+    
+    document.documentElement.setAttribute('data-theme', actualTheme);
 }
 
-function updateThemeToggle(theme) {
-    const toggle = document.querySelector('.theme-toggle');
-    toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+function setTheme(preference) {
+    localStorage.setItem('sphinxFocusThemePreference', preference);
+    applyTheme(preference);
+    updateThemeIcon(preference);
+    closeThemeDropdown();
 }
+
+function updateThemeIcon(preference) {
+    const icon = document.getElementById('themeIcon');
+    
+    if (preference === 'light') {
+        icon.textContent = 'light_mode';
+    } else if (preference === 'dark') {
+        icon.textContent = 'dark_mode';
+    } else {
+        icon.textContent = 'contrast';
+    }
+    
+    // Update active state in dropdown
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    const activeOption = document.querySelector(`.theme-option[onclick="setTheme('${preference}')"]`);
+    if (activeOption) {
+        activeOption.classList.add('active');
+    }
+}
+
+function toggleThemeDropdown() {
+    const dropdown = document.getElementById('themeDropdown');
+    dropdown.classList.toggle('show');
+    
+    // Update active state
+    const currentPreference = localStorage.getItem('sphinxFocusThemePreference') || 'system';
+    updateThemeIcon(currentPreference);
+}
+
+function closeThemeDropdown() {
+    const dropdown = document.getElementById('themeDropdown');
+    dropdown.classList.remove('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const themeSelector = document.querySelector('.theme-selector');
+    if (themeSelector && !themeSelector.contains(event.target)) {
+        closeThemeDropdown();
+    }
+});
 
 // Timer Functions
 function toggleTimer() {
@@ -280,9 +343,9 @@ function updateTimerMode() {
 function updateStartButton() {
     const btn = document.getElementById('startBtn');
     if (state.timer.isRunning) {
-        btn.innerHTML = '<span>⏸️</span> Pause';
+        btn.innerHTML = '<span class="material-symbols-outlined">pause</span><span>Pause</span>';
     } else {
-        btn.innerHTML = '<span>▶️</span> Start';
+        btn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span><span>Start</span>';
     }
 }
 

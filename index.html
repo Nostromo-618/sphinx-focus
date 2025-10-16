@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sphinx Focus - Pomodoro Timer & Productivity Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
     <div class="container">
@@ -14,8 +15,28 @@
                 <div class="logo-text">Sphinx Focus</div>
             </div>
             <div class="header-controls">
-                <button class="btn btn-secondary btn-icon" onclick="openSettings()">⚙️</button>
-                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+                <button class="btn btn-secondary btn-icon" onclick="openSettings()">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+                <div class="theme-selector">
+                    <button class="theme-toggle" onclick="toggleThemeDropdown()">
+                        <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+                    </button>
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <button class="theme-option" onclick="setTheme('light')">
+                            <span class="material-symbols-outlined">light_mode</span>
+                            <span>Light</span>
+                        </button>
+                        <button class="theme-option" onclick="setTheme('dark')">
+                            <span class="material-symbols-outlined">dark_mode</span>
+                            <span>Dark</span>
+                        </button>
+                        <button class="theme-option" onclick="setTheme('system')">
+                            <span class="material-symbols-outlined">contrast</span>
+                            <span>System</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -60,13 +81,16 @@
 
                 <div class="timer-controls">
                     <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">
-                        <span>▶️</span> Start
+                        <span class="material-symbols-outlined">play_arrow</span>
+                        <span>Start</span>
                     </button>
                     <button class="btn btn-secondary" onclick="resetTimer()">
-                        <span>🔄</span> Reset
+                        <span class="material-symbols-outlined">refresh</span>
+                        <span>Reset</span>
                     </button>
                     <button class="btn btn-secondary" onclick="skipSession()">
-                        <span>⏭️</span> Skip
+                        <span class="material-symbols-outlined">skip_next</span>
+                        <span>Skip</span>
                     </button>
                 </div>
 
@@ -128,8 +152,14 @@
             <h2 class="card-title">Session History</h2>
             <div class="session-history" id="sessionHistory"></div>
             <div class="export-import-controls">
-                <button class="btn btn-secondary" onclick="exportData()">📥 Export Data</button>
-                <button class="btn btn-secondary" onclick="importData()">📤 Import Data</button>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <span class="material-symbols-outlined">download</span>
+                    <span>Export Data</span>
+                </button>
+                <button class="btn btn-secondary" onclick="importData()">
+                    <span class="material-symbols-outlined">upload</span>
+                    <span>Import Data</span>
+                </button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
             </div>
         </div>
@@ -140,7 +170,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Settings</h2>
-                <button class="modal-close" onclick="closeSettings()">✕</button>
+                <button class="modal-close" onclick="closeSettings()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
             
             <div class="settings-section">
@@ -184,14 +216,19 @@
             </div>
 
             <div class="settings-section">
-                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                <button class="btn btn-danger" onclick="clearAllData()">
+                    <span class="material-symbols-outlined">delete</span>
+                    <span>Clear All Data</span>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Notification -->
     <div class="notification" id="notification">
-        <div class="notification-icon">🔔</div>
+        <div class="notification-icon">
+            <span class="material-symbols-outlined">notifications</span>
+        </div>
         <div class="notification-content">
             <div class="notification-title" id="notificationTitle">Session Complete!</div>
             <div class="notification-message" id="notificationMessage">Time for a break</div>

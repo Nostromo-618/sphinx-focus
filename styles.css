@@ -40,6 +40,16 @@
     box-sizing: border-box;
 }
 
+/* Material Icons */
+.material-symbols-outlined {
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+    user-select: none;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--bg-primary);
@@ -85,6 +95,7 @@ body {
     font-size: 24px;
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -95,6 +106,10 @@ body {
     align-items: center;
 }
 
+.theme-selector {
+    position: relative;
+}
+
 .theme-toggle {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -102,12 +117,69 @@ body {
     padding: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-toggle:hover {
     background: var(--bg-tertiary);
     transform: scale(1.05);
+}
+
+.theme-toggle .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.theme-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px;
+    min-width: 150px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.theme-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.theme-option:hover {
+    background: var(--bg-tertiary);
+}
+
+.theme-option .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.theme-option.active {
+    background: var(--primary-color);
+    color: white;
 }
 
 .main-grid {
@@ -179,6 +251,7 @@ body {
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 30px;
@@ -202,6 +275,10 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+}
+
+.btn .material-symbols-outlined {
+    font-size: 20px;
 }
 
 .btn-primary {
