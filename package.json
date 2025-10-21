@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run clean && npm run copy",
     "clean": "rm -rf dist",
-    "copy": "mkdir -p dist && cp index.html styles.css app.js favicon.ico dist/ && cp -r fonts dist/",
+    "copy": "mkdir -p dist && cp index.html styles.css app.js favicon.ico dist/ && cp -r fonts dist/ && cp -r media dist/",
     "serve": "http-server dist -p 8080",
     "dev": "http-server . -p 3000"
   },
