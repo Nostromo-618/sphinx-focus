@@ -362,7 +362,14 @@ function addTask() {
             createdAt: new Date().toISOString()
         };
         
-        state.tasks.push(task);
+        // Add new tasks at the top (before any completed tasks)
+        const firstCompletedIndex = state.tasks.findIndex(t => t.completed);
+        if (firstCompletedIndex !== -1) {
+            state.tasks.splice(firstCompletedIndex, 0, task);
+        } else {
+            state.tasks.unshift(task);
+        }
+        
         input.value = '';
         updateTaskList();
         saveState();
