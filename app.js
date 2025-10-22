@@ -388,6 +388,79 @@ function deleteTask(taskId) {
     saveState();
 }
 
+// Drag and Drop functionality
+let draggedElement = null;
+let draggedIndex = null;
+
+function initializeDragAndDrop() {
+    const taskItems = document.querySelectorAll('.task-item');
+    
+    taskItems.forEach((item, index) => {
+        // Dragstart event
+        item.addEventListener('dragstart', (e) => {
+            draggedElement = item;
+            draggedIndex = parseInt(item.dataset.taskIndex);
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        
+        // Dragend event
+        item.addEventListener('dragend', (e) => {
+            item.classList.remove('dragging');
+            draggedElement = null;
+            draggedIndex = null;
+            
+            // Remove all drag-over classes
+            document.querySelectorAll('.task-item').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+        });
+        
+        // Dragover event
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            
+            if (draggedElement && draggedElement !== item) {
+                const rect = item.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                
+                // Remove drag-over from all items
+                document.querySelectorAll('.task-item').forEach(el => {
+                    el.classList.remove('drag-over');
+                });
+                
+                item.classList.add('drag-over');
+            }
+        });
+        
+        // Drop event
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            if (draggedElement && draggedElement !== item) {
+                const dropIndex = parseInt(item.dataset.taskIndex);
+                
+                // Reorder the tasks array
+                const [movedTask] = state.tasks.splice(draggedIndex, 1);
+                state.tasks.splice(dropIndex, 0, movedTask);
+                
+                // Update UI and save
+                updateTaskList();
+                saveState();
+            }
+            
+            item.classList.remove('drag-over');
+        });
+        
+        // Dragleave event
+        item.addEventListener('dragleave', (e) => {
+            if (e.target === item) {
+                item.classList.remove('drag-over');
+            }
+        });
+    });
+}
+
 function updateTaskList() {
     const taskList = document.getElementById('taskList');
     
@@ -396,8 +469,11 @@ function updateTaskList() {
         return;
     }
     
-    taskList.innerHTML = state.tasks.map(task => `
-        <div class="task-item ${task.completed ? 'completed' : ''}">
+    taskList.innerHTML = state.tasks.map((task, index) => `
+        <div class="task-item ${task.completed ? 'completed' : ''}" 
+             draggable="true" 
+             data-task-id="${task.id}"
+             data-task-index="${index}">
             <div class="task-content">
                 <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
                 <span class="task-text">${task.text}</span>
@@ -405,6 +481,9 @@ function updateTaskList() {
             <button class="task-delete" onclick="deleteTask(${task.id})">✕</button>
         </div>
     `).join('');
+    
+    // Add drag and drop event listeners
+    initializeDragAndDrop();
 }
 
 // Statistics
