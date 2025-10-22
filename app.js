@@ -370,13 +370,29 @@ function addTask() {
 }
 
 function toggleTask(taskId) {
-    const task = state.tasks.find(t => t.id === taskId);
-    if (task) {
+    const taskIndex = state.tasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1) {
+        const task = state.tasks[taskIndex];
         task.completed = !task.completed;
+        
         if (task.completed) {
             state.statistics.todayTasks++;
             updateStatistics();
+            
+            // Move completed task to bottom
+            state.tasks.splice(taskIndex, 1);
+            state.tasks.push(task);
+        } else {
+            // Move uncompleted task to top (before other completed tasks)
+            state.tasks.splice(taskIndex, 1);
+            const firstCompletedIndex = state.tasks.findIndex(t => t.completed);
+            if (firstCompletedIndex !== -1) {
+                state.tasks.splice(firstCompletedIndex, 0, task);
+            } else {
+                state.tasks.push(task);
+            }
         }
+        
         updateTaskList();
         saveState();
     }
