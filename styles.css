@@ -458,10 +458,29 @@ body {
     align-items: center;
     justify-content: space-between;
     transition: all 0.3s ease;
+    cursor: grab;
+    user-select: none;
 }
 
 .task-item:hover {
     background: var(--bg-tertiary);
+}
+
+.task-item:active {
+    cursor: grabbing;
+}
+
+.task-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: scale(1.02);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.task-item.drag-over {
+    border: 2px dashed var(--primary-color);
+    background: var(--bg-tertiary);
+    transform: scale(1.02);
 }
 
 .task-item.completed {
