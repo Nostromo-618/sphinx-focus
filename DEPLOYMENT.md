@@ -2,121 +2,81 @@
 
 This document explains how to deploy Sphinx Focus to GitHub Pages.
 
+## Quick Deploy
+
+**The easiest way to deploy:**
+
+```bash
+./deploy.sh
+```
+
+That's it! The script handles everything automatically.
+
+---
+
 ## Overview
 
 The project uses a two-branch workflow:
 - **`main`** - Development branch where all code changes are made
 - **`gh-pages`** - Deployment branch that serves the built site on GitHub Pages
 
-## Initial Setup (Already Done)
+## GitHub Pages Setup
 
-The gh-pages branch has been created and pushed to GitHub. To enable GitHub Pages:
-
-1. Go to your repository on GitHub
-2. Navigate to **Settings** → **Pages**
-3. Under "Source", select:
-   - Branch: `gh-pages`
-   - Folder: `/ (root)`
-4. Click **Save**
-
-Your site will be available at: `https://nostromo-618.github.io/sphinx-focus/`
+GitHub Pages is configured to deploy from:
+- **Branch:** `gh-pages`
+- **Folder:** `/ (root)`
+- **URL:** https://nostromo-618.github.io/sphinx-focus/
 
 ## Deployment Workflow
 
-### Step 1: Develop in main branch
+### Automated Deployment (Recommended)
 
-Make all your changes in the `main` branch:
-
-```bash
-# Ensure you're on main branch
-git checkout main
-
-# Make your changes to index.html, app.js, styles.css, etc.
-# ... edit files ...
-
-# Commit your changes
-git add .
-git commit -m "Your commit message"
-git push origin main
-```
-
-### Step 2: Build the project
-
-Run the build script to create the `dist/` folder:
+Use the provided deployment script:
 
 ```bash
-npm run build
-```
-
-This will:
-1. Clean the `dist/` directory
-2. Copy [`index.html`](index.html:1), [`styles.css`](styles.css:1), and [`app.js`](app.js:1) to `dist/`
-
-### Step 3: Deploy to gh-pages
-
-Switch to the gh-pages branch and copy the built files:
-
-```bash
-# Switch to gh-pages branch
-git checkout gh-pages
-
-# Copy built files from dist/ to root
-cp dist/* .
-
-# Commit the changes
-git add index.html styles.css app.js
-git commit -m "Deploy: update from main"
-
-# Push to GitHub
-git push origin gh-pages
-
-# Switch back to main branch
-git checkout main
-```
-
-### Complete Deployment Script
-
-Here's a complete bash script you can save and run:
-
-```bash
-#!/bin/bash
-# deploy.sh - Deploy to GitHub Pages
-
-# Ensure we're on main branch
-git checkout main
-
-# Build the project
-npm run build
-
-# Switch to gh-pages
-git checkout gh-pages
-
-# Copy built files
-cp dist/* .
-
-# Add and commit
-git add index.html styles.css app.js
-git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')"
-
-# Push to GitHub
-git push origin gh-pages
-
-# Return to main
-git checkout main
-
-echo "✅ Deployment complete!"
-echo "🌐 Your site will be updated at: https://nostromo-618.github.io/sphinx-focus/"
-```
-
-To use this script:
-
-```bash
-# Make it executable
-chmod +x deploy.sh
-
-# Run it
 ./deploy.sh
 ```
+
+The script will:
+1. ✅ Ensure you're on the main branch
+2. 🔨 Build the project (`npm run build`)
+3. 🔀 Switch to gh-pages branch
+4. 📋 Copy all built files to root (index.html, styles.css, app.js, favicon.ico, fonts/, media/)
+5. 💾 Commit changes with timestamp
+6. ⬆️ Push to GitHub
+7. 🔙 Return to main branch
+
+**Note:** The deploy script is already executable. If you need to make it executable again:
+```bash
+chmod +x deploy.sh
+```
+
+### Manual Deployment
+
+If you prefer to deploy manually:
+
+```bash
+# 1. Ensure you're on main and build
+git checkout main
+npm run build
+
+# 2. Switch to gh-pages
+git checkout gh-pages
+
+# 3. Copy ALL built files from dist/ to root
+cp dist/index.html dist/styles.css dist/app.js dist/favicon.ico .
+cp -r dist/fonts dist/media .
+
+# 4. Commit and push
+git add index.html styles.css app.js favicon.ico fonts/ media/
+git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')"
+git push origin gh-pages
+
+# 5. Return to main
+git checkout main
+```
+
+**Important:** You MUST copy files to the ROOT of gh-pages branch, not keep them in dist/. GitHub Pages serves from the root directory.
 
 ## Available NPM Scripts
 
@@ -128,53 +88,89 @@ chmod +x deploy.sh
 
 ## Testing Before Deployment
 
-Before deploying, you can test the built version locally:
+Before deploying, test the built version locally:
 
 ```bash
-# Build the project
 npm run build
-
-# Serve the dist folder
 npm run serve
 ```
 
-Then open http://localhost:8080 in your browser to test the built version.
+Open http://localhost:8080 to preview the built version.
+
+Or test the development version directly:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 to preview without building.
 
 ## Important Notes
 
 1. **Never develop in gh-pages** - This branch should only contain deployed files
-2. **Always build before deploying** - Run `npm run build` to ensure you have the latest changes
+2. **Always build before deploying** - The deploy script does this automatically
 3. **The dist/ folder is gitignored** - It won't be committed to the main branch
-4. **GitHub Pages serves from root** - The built files are copied to the root of gh-pages branch
+4. **⚠️ CRITICAL: Files must be in ROOT of gh-pages** - GitHub Pages serves from `/`, not `/dist/`
+5. **All assets must be copied** - Don't forget favicon.ico, fonts/, and media/
 
 ## Troubleshooting
 
 ### Changes not appearing on GitHub Pages
 
-- GitHub Pages may take a few minutes to update
-- Check the Actions tab on GitHub for deployment status
-- Ensure you pushed to the gh-pages branch, not main
+**Most common issue:** Files were only updated in `dist/` but not copied to the ROOT of gh-pages branch.
+
+**Solution:**
+```bash
+git checkout gh-pages
+# Verify files are in root, not in dist/
+ls -la index.html styles.css app.js favicon.ico
+# If they're missing or outdated, copy from dist/
+cp dist/* .
+cp -r dist/fonts dist/media .
+git add -A
+git commit -m "Fix: Copy files to root"
+git push origin gh-pages
+git checkout main
+```
+
+**Other causes:**
+- GitHub Pages may take 2-5 minutes to update
+- Try a hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
+- Check your browser cache - try incognito/private mode
+- Check the "Actions" tab on GitHub for deployment status
 
 ### Build issues
 
-- Make sure all source files exist: [`index.html`](index.html:1), [`styles.css`](styles.css:1), [`app.js`](app.js:1)
-- Run `npm run clean` and then `npm run build` to start fresh
+- Make sure all source files exist
+- Run `npm run clean && npm run build` to start fresh
+- Verify the build includes: `index.html`, `styles.css`, `app.js`, `favicon.ico`, `fonts/`, `media/`
 
-### Branch confusion
+### Deploy script issues
 
-- Use `git branch` to check which branch you're on
-- Always commit changes to main, then deploy to gh-pages
-- Never merge gh-pages into main or vice versa
+If `./deploy.sh` doesn't work:
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
 
-## Automated Deployment (Future Enhancement)
+---
 
-Consider setting up GitHub Actions to automate deployment:
-- Create `.github/workflows/deploy.yml`
-- Auto-deploy when pushing to main
-- No manual branch switching required
+## Project Files
+
+**Source files (main branch):**
+- `index.html` - Main HTML file
+- `styles.css` - Stylesheet with theme support
+- `app.js` - Application logic
+- `favicon.ico` - Site favicon
+- `fonts/` - Ubuntu font files
+- `media/` - Images (sphinx logo)
+
+**Deployed files (gh-pages branch ROOT):**
+- All of the above files, copied from `dist/` after building
 
 ---
 
 **Current Branches:**
-- `main` - Development (you are here)
+- `main` - Development (make all changes here)
+- `gh-pages` - Production deployment (deploy script updates this)
 - `gh-pages` - Production deployment

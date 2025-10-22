@@ -19,12 +19,12 @@ git checkout gh-pages
 
 # Copy built files
 echo "📋 Copying built files..."
-cp dist/index.html dist/styles.css dist/app.js .
-cp -r dist/fonts .
+cp dist/index.html dist/styles.css dist/app.js dist/favicon.ico .
+cp -r dist/fonts dist/media .
 
 # Add and commit
 echo "💾 Committing changes..."
-git add index.html styles.css app.js fonts/
+git add index.html styles.css app.js favicon.ico fonts/ media/
 git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
 
 # Push to GitHub
