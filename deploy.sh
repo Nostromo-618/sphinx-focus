@@ -17,10 +17,16 @@ npm run build
 echo "🔀 Switching to gh-pages branch..."
 git checkout gh-pages
 
-# Copy built files
-echo "📋 Copying built files..."
-cp dist/index.html dist/styles.css dist/app.js dist/favicon.ico .
-cp -r dist/fonts dist/media .
+# Copy built files from main branch
+echo "📋 Copying built files from main branch..."
+git show main:index.html > index.html
+git show main:styles.css > styles.css
+git show main:app.js > app.js
+git show main:favicon.ico > favicon.ico
+
+# Copy directories using checkout
+echo "📁 Copying directories..."
+git checkout main -- fonts/ media/ 2>/dev/null || true
 
 # Add and commit
 echo "💾 Committing changes..."
