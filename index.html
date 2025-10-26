@@ -21,6 +21,9 @@
                 <div class="logo-text">Sphinx Focus</div>
             </div>
             <div class="header-controls">
+                <button class="version-badge" onclick="openChangelog()" title="View changelog">
+                    <span class="version-text">v<span id="appVersion"></span></span>
+                </button>
                 <button class="btn btn-secondary btn-icon" onclick="openSettings()">
                     <span class="material-symbols-outlined">settings</span>
                 </button>
@@ -211,6 +214,12 @@
                         <div class="toggle-switch-handle"></div>
                     </div>
                 </div>
+                <div class="toggle-group">
+                    <span class="toggle-label">Resume Timer After Refresh</span>
+                    <div class="toggle-switch active" id="resumeTimerToggle" onclick="toggleSetting('resumeTimer')">
+                        <div class="toggle-switch-handle"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="settings-section">
@@ -241,7 +250,122 @@
         </div>
     </div>
 
+    <!-- Disclaimer Modal -->
+    <div class="disclaimer-modal" id="disclaimerModal">
+        <div class="disclaimer-content">
+            <div class="modal-logo">
+                <img src="media/spinx-full-no-background.png" alt="Sphinx" class="modal-logo-img">
+            </div>
+            <h2 class="disclaimer-title">Welcome to Sphinx Focus</h2>
+            <div class="disclaimer-text">
+                <p>Before you begin using this productivity tool, please read the following disclaimer:</p>
+                
+                <p>This application is provided for <strong>informational and productivity purposes only</strong>. While the Pomodoro Technique is a widely-used time management method, results may vary for different individuals.</p>
+                
+                <p>The app stores all your data <strong>locally in your browser</strong> using encrypted localStorage. Your data never leaves your device. However, clearing your browser data will result in loss of your stored information unless you have exported a backup.</p>
+                
+                <p>The developers of this app are <strong>not responsible or liable</strong> for any loss of data, productivity outcomes, or any other direct, indirect, incidental, special, or consequential damages arising from the use of this application.</p>
+                
+                <p>You must be <strong>at least 13 years old</strong> to use this app.</p>
+                
+                <p>By clicking <strong>"I Agree"</strong>, you acknowledge that you have read this disclaimer and agree to its terms.</p>
+            </div>
+            <div class="disclaimer-actions">
+                <button class="btn btn-secondary" onclick="declineDisclaimer()">Decline</button>
+                <button class="btn btn-primary" onclick="acceptDisclaimer()">I Agree</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog Modal -->
+    <div class="settings-modal" id="changelogModal">
+        <div class="modal-content">
+            <div class="modal-logo">
+                <img src="media/spinx-full-no-background.png" alt="Sphinx" class="modal-logo-img">
+            </div>
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">history</span>
+                    What's New
+                </h2>
+                <button class="modal-close" onclick="closeChangelog()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="changelog-content">
+                <!-- Version 2.0.0 -->
+                <div class="changelog-version">
+                    <div class="version-header">
+                        <h3>Version 2.0.0 <span class="version-badge-tag current">Current</span></h3>
+                        <span class="version-date">October 2025</span>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🔐 Security Enhancements</h4>
+                        <ul>
+                            <li><strong>AES-GCM 256-bit Encryption</strong> - All data now encrypted at rest</li>
+                            <li><strong>XSS Protection</strong> - Complete input sanitization</li>
+                            <li><strong>Data Validation</strong> - Comprehensive validation on all stored data</li>
+                            <li><strong>Import Security</strong> - Multi-layer validation for imported files</li>
+                            <li><strong>Storage Limits</strong> - Protection against quota exhaustion</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🏗️ Architecture Improvements</h4>
+                        <ul>
+                            <li><strong>Service Layer</strong> - Clean separation of concerns</li>
+                            <li><strong>Encryption Service</strong> - Dedicated encryption management</li>
+                            <li><strong>Storage Service</strong> - Centralized storage operations</li>
+                            <li><strong>Error Handling</strong> - Comprehensive error recovery</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>✨ New Features</h4>
+                        <ul>
+                            <li><strong>Timer Persistence</strong> - Timer continues after page refresh</li>
+                            <li><strong>Resume Notification</strong> - Visual feedback when timer resumes</li>
+                            <li><strong>Disclaimer Modal</strong> - Professional first-time user experience</li>
+                            <li><strong>Auto Migration</strong> - Seamless upgrade from v1.0</li>
+                            <li><strong>Resume Control</strong> - Optional setting to disable timer resume</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>📚 Documentation</h4>
+                        <ul>
+                            <li>Complete security documentation (SECURITY.md)</li>
+                            <li>Comprehensive testing guide (TESTING.md)</li>
+                            <li>Quick start guide (QUICKSTART.md)</li>
+                            <li>Detailed improvements log (IMPROVEMENTS.md)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Version 1.0.0 -->
+                <div class="changelog-version">
+                    <div class="version-header">
+                        <h3>Version 1.0.0</h3>
+                        <span class="version-date">Initial Release</span>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🎯 Core Features</h4>
+                        <ul>
+                            <li>Pomodoro timer with customizable durations</li>
+                            <li>Task management system</li>
+                            <li>Session tracking and statistics</li>
+                            <li>Dark and light themes</li>
+                            <li>Data export/import</li>
+                            <li>Browser notifications</li>
+                            <li>Keyboard shortcuts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="services/encryptionService.js"></script>
+    <script src="services/storageService.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -26,11 +26,11 @@ git show main:favicon.ico > favicon.ico
 
 # Copy directories using checkout
 echo "📁 Copying directories..."
-git checkout main -- fonts/ media/ 2>/dev/null || true
+git checkout main -- fonts/ media/ services/ 2>/dev/null || true
 
 # Add and commit
 echo "💾 Committing changes..."
-git add index.html styles.css app.js favicon.ico fonts/ media/
+git add index.html styles.css app.js favicon.ico fonts/ media/ services/
 git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
 
 # Push to GitHub

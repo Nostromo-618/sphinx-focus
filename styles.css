@@ -670,6 +670,12 @@ body {
     overflow-y: auto;
 }
 
+/* Wider modal for changelog */
+#changelogModal .modal-content {
+    max-width: 900px;
+    width: 85%;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -752,4 +758,359 @@ body {
 
 .hidden {
     display: none;
+}
+
+/* Modal Logo */
+.modal-logo {
+    text-align: center;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.modal-logo-img {
+    width: 180px;
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
+    transition: transform 0.3s ease;
+}
+
+.modal-logo:hover .modal-logo-img {
+    transform: scale(1.05);
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Disclaimer Modal */
+.disclaimer-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.disclaimer-modal.show {
+    display: flex;
+}
+
+.disclaimer-content {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+}
+
+.disclaimer-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.disclaimer-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+.disclaimer-text p {
+    margin-bottom: 16px;
+}
+
+.disclaimer-text p:last-child {
+    margin-bottom: 0;
+}
+
+.disclaimer-text strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.disclaimer-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.disclaimer-actions .btn {
+    flex: 1;
+    max-width: 150px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive disclaimer */
+@media (max-width: 768px) {
+    .modal-logo-img {
+        width: 120px;
+    }
+    
+    .disclaimer-content {
+        margin: 20px;
+        padding: 24px;
+        max-width: calc(100% - 40px);
+    }
+    
+    .disclaimer-title {
+        font-size: 22px;
+    }
+    
+    .disclaimer-text {
+        font-size: 14px;
+    }
+    
+    .disclaimer-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .disclaimer-actions .btn {
+        max-width: 100%;
+    }
+}
+
+/* Version Badge */
+.version-badge {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.version-badge:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.version-text {
+    font-family: 'Ubuntu Mono', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* Changelog Modal */
+.changelog-content {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+/* Beautiful custom scrollbar */
+.changelog-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.changelog-content::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.changelog-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 4px;
+}
+
+.changelog-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+/* Firefox scrollbar */
+.changelog-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--bg-tertiary);
+}
+
+.changelog-version {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.changelog-version:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.version-header h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.version-badge-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.version-badge-tag.current {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.version-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.changelog-section {
+    margin-bottom: 20px;
+    break-inside: avoid;
+}
+
+.changelog-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+/* Two-column layout for better space usage */
+@media (min-width: 769px) {
+    .changelog-version {
+        column-gap: 40px;
+    }
+    
+    .changelog-version:first-child {
+        column-count: 2;
+    }
+}
+
+.changelog-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.changelog-section li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.changelog-section li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.changelog-section li strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Responsive changelog */
+@media (max-width: 768px) {
+    .version-badge {
+        padding: 4px 10px;
+        font-size: 12px;
+        margin-right: 8px;
+    }
+    
+    #changelogModal .modal-content {
+        max-width: 95%;
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .changelog-content {
+        max-height: 65vh;
+    }
+    
+    .version-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .version-header h3 {
+        font-size: 18px;
+    }
+    
+    .changelog-section h4 {
+        font-size: 15px;
+    }
+    
+    .changelog-section li {
+        font-size: 14px;
+    }
 }
