@@ -1,3 +1,6 @@
+// App Version
+const APP_VERSION = '2.0.0';
+
 // State Management
 let state = {
     timer: {
@@ -20,7 +23,8 @@ let state = {
         notification: true,
         notificationPermission: 'default', // Track permission state
         autoBreak: false,
-        autoPomodoro: false
+        autoPomodoro: false,
+        resumeTimer: true // Resume timer after page refresh
     },
     tasks: [],
     sessions: [],
@@ -36,10 +40,16 @@ let state = {
 let focusChart = null;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadState();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Display app version
+    document.getElementById('appVersion').textContent = APP_VERSION;
+    
+    // Check disclaimer acceptance first
+    checkDisclaimer();
+    
+    await loadState();
     initializeTheme();
-    restoreTimerState(); // Restore timer if it was running
+    await restoreTimerState(); // Restore timer if it was running
     updateDisplay();
     updateStatistics();
     updateSessionHistory();
@@ -58,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateToggleSwitch('notificationToggle', state.settings.notification);
     updateToggleSwitch('autoBreakToggle', state.settings.autoBreak);
     updateToggleSwitch('autoPomodoroToggle', state.settings.autoPomodoro);
+    updateToggleSwitch('resumeTimerToggle', state.settings.resumeTimer);
     
     // Add event listeners for settings changes
     document.getElementById('workDuration').addEventListener('change', updateSettings);
@@ -79,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Theme Management
 function initializeTheme() {
     // Check for saved theme preference first
-    const savedThemePreference = localStorage.getItem('sphinxFocusThemePreference') || 'system';
+    const savedThemePreference = storageService.getThemePreference() || 'system';
     
     applyTheme(savedThemePreference);
     updateThemeIcon(savedThemePreference);
@@ -109,7 +120,7 @@ function applyTheme(preference) {
 }
 
 function setTheme(preference) {
-    localStorage.setItem('sphinxFocusThemePreference', preference);
+    storageService.saveThemePreference(preference);
     applyTheme(preference);
     updateThemeIcon(preference);
     closeThemeDropdown();
@@ -142,7 +153,7 @@ function toggleThemeDropdown() {
     dropdown.classList.toggle('show');
     
     // Update active state
-    const currentPreference = localStorage.getItem('sphinxFocusThemePreference') || 'system';
+    const currentPreference = storageService.getThemePreference() || 'system';
     updateThemeIcon(currentPreference);
 }
 
@@ -223,7 +234,7 @@ function completeSession() {
     pauseTimer();
     
     // Clear the timer state since session is complete
-    localStorage.removeItem('sphinxFocusTimerState');
+    storageService.clearTimerState();
     
     // Play sound if enabled
     if (state.settings.sound) {
@@ -773,17 +784,16 @@ function saveTimerState() {
         currentSeconds: state.timer.currentSeconds,
         lastUpdateTime: state.timer.lastUpdateTime
     };
-    localStorage.setItem('sphinxFocusTimerState', JSON.stringify(timerData));
+    storageService.saveTimerState(timerData);
 }
 
 // Restore timer state on page load
-function restoreTimerState() {
-    const savedTimer = localStorage.getItem('sphinxFocusTimerState');
-    if (savedTimer) {
-        const timerData = JSON.parse(savedTimer);
+async function restoreTimerState() {
+    const timerData = storageService.loadTimerState();
+    if (timerData) {
         
         // If timer was running, calculate elapsed time
-        if (timerData.isRunning && timerData.lastUpdateTime) {
+        if (timerData.isRunning && timerData.lastUpdateTime && state.settings.resumeTimer) {
             const elapsed = Math.floor((Date.now() - timerData.lastUpdateTime) / 1000);
             let remainingSeconds = timerData.currentSeconds - elapsed;
             
@@ -805,6 +815,11 @@ function restoreTimerState() {
                 
                 // Resume timer
                 startTimer();
+                
+                // Notify user that timer was resumed
+                setTimeout(() => {
+                    showNotification('Timer Resumed', 'Your session continued from where you left off');
+                }, 1000);
             }
         } else {
             // Timer was paused, just restore the state
@@ -853,103 +868,163 @@ function playNotificationSound() {
 }
 
 // Data Management
-function saveState() {
-    localStorage.setItem('sphinxFocusState', JSON.stringify(state));
+async function saveState() {
+    try {
+        await storageService.saveState(state);
+    } catch (error) {
+        console.error('Failed to save state:', error);
+        showNotification('Error', 'Failed to save data. Please try again.');
+    }
 }
 
-function loadState() {
-    const saved = localStorage.getItem('sphinxFocusState');
-    if (saved) {
-        const loadedState = JSON.parse(saved);
+async function loadState() {
+    try {
+        const loadedState = await storageService.loadState();
         
-        // Merge with default state to ensure all properties exist
-        state = {
-            ...state,
-            ...loadedState,
-            timer: {
-                ...state.timer,
-                ...loadedState.timer,
-                isRunning: false,
-                interval: null
-            },
-            settings: {
-                ...state.settings,
-                ...loadedState.settings
+        if (loadedState) {
+            // Merge with default state to ensure all properties exist
+            state = {
+                ...state,
+                ...loadedState,
+                timer: {
+                    ...state.timer,
+                    ...loadedState.timer,
+                    isRunning: false,
+                    interval: null
+                },
+                settings: {
+                    ...state.settings,
+                    ...loadedState.settings
+                }
+            };
+            
+            // Check if today's stats need to be reset
+            const today = new Date().toDateString();
+            const lastSession = state.sessions[state.sessions.length - 1];
+            if (!lastSession || new Date(lastSession.date).toDateString() !== today) {
+                state.statistics.todayPomodoros = 0;
+                state.statistics.todayFocusTime = 0;
+                state.statistics.todayTasks = 0;
             }
-        };
-        
-        // Check if today's stats need to be reset
-        const today = new Date().toDateString();
-        const lastSession = state.sessions[state.sessions.length - 1];
-        if (!lastSession || new Date(lastSession.date).toDateString() !== today) {
-            state.statistics.todayPomodoros = 0;
-            state.statistics.todayFocusTime = 0;
-            state.statistics.todayTasks = 0;
         }
+    } catch (error) {
+        console.error('Failed to load state:', error);
+        showNotification('Error', 'Failed to load saved data');
     }
 }
 
 function exportData() {
-    const dataStr = JSON.stringify(state, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `sphinx-focus-backup-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-    showNotification('Export Complete', 'Your data has been downloaded');
+    try {
+        const dataBlob = storageService.exportData(state);
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `sphinx-focus-backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        showNotification('Export Complete', 'Your data has been downloaded');
+    } catch (error) {
+        console.error('Export failed:', error);
+        showNotification('Export Failed', 'Could not export data. Please try again.');
+    }
 }
 
 function importData() {
     document.getElementById('importFile').click();
 }
 
-function handleImport(event) {
+async function handleImport(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedState = JSON.parse(e.target.result);
-            
-            // Validate the imported data
-            if (importedState.timer && importedState.settings && importedState.tasks && importedState.sessions) {
-                state = {
-                    ...state,
-                    ...importedState,
-                    timer: {
-                        ...state.timer,
-                        ...importedState.timer,
-                        isRunning: false,
-                        interval: null
-                    }
-                };
-                
-                saveState();
-                location.reload();
-            } else {
-                showNotification('Import Failed', 'Invalid data format');
+    try {
+        const importedState = await storageService.importData(file);
+        
+        // Merge imported state with current state
+        state = {
+            ...state,
+            ...importedState,
+            timer: {
+                ...state.timer,
+                ...importedState.timer,
+                isRunning: false,
+                interval: null
             }
-        } catch (error) {
-            showNotification('Import Failed', 'Could not parse the file');
-        }
-    };
+        };
+        
+        await saveState();
+        showNotification('Import Complete', 'Your data has been imported successfully');
+        
+        // Reload after a short delay to show notification
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    } catch (error) {
+        console.error('Import failed:', error);
+        showNotification('Import Failed', error.message || 'Could not import the file');
+    }
     
-    reader.readAsText(file);
     event.target.value = '';
 }
 
 function clearAllData() {
     if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-        localStorage.removeItem('sphinxFocusState');
-        localStorage.removeItem('sphinxFocusTimerState');
-        localStorage.removeItem('sphinxFocusTheme');
-        location.reload();
+        storageService.clearAllData();
+        showNotification('Data Cleared', 'All data has been removed');
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     }
+}
+
+// Disclaimer Management
+function checkDisclaimer() {
+    const accepted = storageService.getDisclaimerAccepted();
+    if (!accepted) {
+        showDisclaimerModal();
+    }
+}
+
+function showDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    modal.classList.add('show');
+    
+    // Blur the background content
+    document.querySelector('.container').style.filter = 'blur(5px)';
+    document.querySelector('.container').style.pointerEvents = 'none';
+}
+
+function hideDisclaimerModal() {
+    const modal = document.getElementById('disclaimerModal');
+    modal.classList.remove('show');
+    
+    // Remove blur from background
+    document.querySelector('.container').style.filter = 'none';
+    document.querySelector('.container').style.pointerEvents = 'auto';
+}
+
+function acceptDisclaimer() {
+    storageService.saveDisclaimerAccepted(true);
+    hideDisclaimerModal();
+    showNotification('Welcome!', 'Thank you for accepting. Enjoy using Sphinx Focus!');
+}
+
+function declineDisclaimer() {
+    if (confirm('You must accept the disclaimer to use this app. If you decline, the app will not function. Are you sure you want to decline?')) {
+        // Show a message and keep the modal
+        alert('You cannot use this app without accepting the disclaimer. Please refresh the page if you change your mind.');
+    }
+}
+
+// Changelog Management
+function openChangelog() {
+    document.getElementById('changelogModal').classList.add('show');
+}
+
+function closeChangelog() {
+    document.getElementById('changelogModal').classList.remove('show');
 }
 
 // Keyboard Shortcuts
