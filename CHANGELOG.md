@@ -5,6 +5,69 @@ All notable changes to Sphinx Focus will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-10-27
+
+### ✨ New Features
+
+#### Added
+- **Quality Dialog** - Optional post-session rating system
+  - Rate focus quality (1-10) after each work session
+  - Rate rest quality (1-10) after each break
+  - Beautiful slider interface with real-time feedback
+  - Can be skipped without recording
+  - Enabled by default, can be disabled in settings
+- **Quality Trends Chart** - Dual-line visualization
+  - Focus Quality line (blue/indigo)
+  - Rest Quality line (green)
+  - Individual data points plotted over time
+  - Interactive tooltips with detailed information
+  - Automatic scaling and responsive design
+- **Quality Statistics** - Track your patterns
+  - Average focus quality
+  - Average rest quality
+  - Total ratings count
+  - Empty state with helpful message
+- **Settings Integration** - Full control
+  - Quality Dialog toggle switch
+  - Helpful disclaimer explaining the feature
+  - "While it may feel intrusive, tracking quality helps you understand your focus patterns over time"
+
+### 🔧 Technical Enhancements
+
+#### Added
+- Quality ratings storage with encryption
+- Data validation for quality ratings (1-10 range, valid types)
+- Export/import support for quality data
+- Backward compatibility (older exports without quality data work fine)
+- Maximum 10,000 quality ratings limit
+- Sanitization of quality rating data
+
+#### Changed
+- Enhanced storage service to handle quality ratings array
+- Extended state management with `qualityRatings` property
+- Updated export format to include quality data
+- Improved import validation to handle optional quality data
+
+### 📊 User Experience
+
+#### Improved
+- Quality dialog appears 500ms after session completion
+- Non-intrusive design that doesn't block workflow
+- Auto-start timer works alongside quality dialog
+- Chart automatically updates when new ratings added
+- Empty state shown when no ratings exist yet
+- Professional UI matching existing design system
+
+### 🔐 Security
+
+#### Maintained
+- All quality ratings encrypted using existing AES-GCM encryption
+- Input validation prevents invalid ratings
+- XSS protection on all quality data
+- Storage quota management includes quality ratings
+
+---
+
 ## [2.0.0] - 2025-10-26
 
 ### 🔐 Security Enhancements

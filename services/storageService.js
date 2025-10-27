@@ -15,6 +15,7 @@ const MIGRATION_FLAG_KEY = 'sphinxFocusMigrated';
 const MAX_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB limit
 const MAX_TASKS = 1000; // Maximum number of tasks
 const MAX_SESSIONS = 10000; // Maximum number of sessions
+const MAX_QUALITY_RATINGS = 10000; // Maximum number of quality ratings
 const MAX_IMPORT_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 /**
@@ -85,6 +86,11 @@ function validateState(state) {
     return false;
   }
   
+  // Quality ratings is optional (for backward compatibility)
+  if (state.qualityRatings !== undefined && !Array.isArray(state.qualityRatings)) {
+    return false;
+  }
+  
   // Validate timer object
   if (typeof state.timer.minutes !== 'number' || 
       typeof state.timer.seconds !== 'number' ||
@@ -136,6 +142,26 @@ function sanitizeSession(session) {
     duration: Math.floor(session.duration),
     type: session.type === 'break' ? 'break' : 'work',
     completed: Boolean(session.completed)
+  };
+}
+
+/**
+ * Sanitize and validate a quality rating object
+ * @param {Object} rating - Quality rating to validate
+ * @returns {Object|null} Sanitized rating or null if invalid
+ */
+function sanitizeQualityRating(rating) {
+  if (!rating || typeof rating !== 'object') return null;
+  if (!isValidTimestamp(rating.date)) return null;
+  if (typeof rating.quality !== 'number' || rating.quality < 1 || rating.quality > 10) return null;
+  if (!['focus', 'rest'].includes(rating.type)) return null;
+  
+  return {
+    id: rating.id || Date.now(),
+    date: rating.date,
+    type: rating.type,
+    quality: Math.floor(rating.quality),
+    sessionDuration: typeof rating.sessionDuration === 'number' ? Math.floor(rating.sessionDuration) : 0
   };
 }
 
@@ -244,6 +270,16 @@ const storageService = {
           .filter(session => session !== null)
           .slice(-MAX_SESSIONS); // Limit number of sessions
         
+        // Sanitize quality ratings (optional, for backward compatibility)
+        if (state.qualityRatings) {
+          state.qualityRatings = state.qualityRatings
+            .map(rating => sanitizeQualityRating(rating))
+            .filter(rating => rating !== null)
+            .slice(-MAX_QUALITY_RATINGS);
+        } else {
+          state.qualityRatings = [];
+        }
+        
         return state;
       } catch (decryptError) {
         console.error('Decryption failed:', decryptError);
@@ -298,7 +334,11 @@ const storageService = {
         sessions: state.sessions
           .map(session => sanitizeSession(session))
           .filter(session => session !== null)
-          .slice(-MAX_SESSIONS)
+          .slice(-MAX_SESSIONS),
+        qualityRatings: (state.qualityRatings || [])
+          .map(rating => sanitizeQualityRating(rating))
+          .filter(rating => rating !== null)
+          .slice(-MAX_QUALITY_RATINGS)
       };
       
       // Encrypt and save
@@ -366,6 +406,9 @@ const storageService = {
         ...state,
         tasks: state.tasks.map(task => sanitizeTask(task)).filter(t => t),
         sessions: state.sessions.map(session => sanitizeSession(session)).filter(s => s),
+        qualityRatings: (state.qualityRatings || [])
+          .map(rating => sanitizeQualityRating(rating))
+          .filter(r => r),
         // Remove runtime properties
         timer: {
           ...state.timer,
@@ -435,6 +478,10 @@ const storageService = {
               .map(session => sanitizeSession(session))
               .filter(session => session !== null)
               .slice(-MAX_SESSIONS),
+            qualityRatings: (importedState.qualityRatings || [])
+              .map(rating => sanitizeQualityRating(rating))
+              .filter(rating => rating !== null)
+              .slice(-MAX_QUALITY_RATINGS),
             timer: {
               ...importedState.timer,
               isRunning: false,
@@ -443,7 +490,7 @@ const storageService = {
             }
           };
           
-          if (sanitizedState.tasks.length === 0 && sanitizedState.sessions.length === 0) {
+          if (sanitizedState.tasks.length === 0 && sanitizedState.sessions.length === 0 && sanitizedState.qualityRatings.length === 0) {
             throw new Error('No valid data found in import file');
           }
           

@@ -1,6 +1,6 @@
 {
   "name": "sphinx-focus",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A beautiful, feature-rich Pomodoro timer application designed to help you maintain focus and boost productivity. Built with vanilla JavaScript, HTML, and CSS for maximum performance and portability.",
   "main": "app.js",
   "scripts": {
