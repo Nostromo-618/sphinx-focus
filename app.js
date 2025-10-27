@@ -1,5 +1,5 @@
 // App Version
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 // State Management
 let state = {
@@ -24,10 +24,12 @@ let state = {
         notificationPermission: 'default', // Track permission state
         autoBreak: false,
         autoPomodoro: false,
-        resumeTimer: true // Resume timer after page refresh
+        resumeTimer: true, // Resume timer after page refresh
+        qualityDialog: true // Quality rating dialog after each session
     },
     tasks: [],
     sessions: [],
+    qualityRatings: [], // Quality ratings for focus and rest sessions
     statistics: {
         todayPomodoros: 0,
         todayFocusTime: 0,
@@ -38,6 +40,7 @@ let state = {
 };
 
 let focusChart = null;
+let qualityChart = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
@@ -55,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateSessionHistory();
     updateTaskList();
     initializeChart();
+    initializeQualityChart();
     initializeNotifications(); // Better notification handling
     
     // Update settings inputs
@@ -69,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateToggleSwitch('autoBreakToggle', state.settings.autoBreak);
     updateToggleSwitch('autoPomodoroToggle', state.settings.autoPomodoro);
     updateToggleSwitch('resumeTimerToggle', state.settings.resumeTimer);
+    updateToggleSwitch('qualityDialogToggle', state.settings.qualityDialog);
     
     // Add event listeners for settings changes
     document.getElementById('workDuration').addEventListener('change', updateSettings);
@@ -246,6 +251,10 @@ function completeSession() {
         showBrowserNotification();
     }
     
+    // Determine session type for quality dialog
+    let qualitySessionType = null;
+    let qualitySessionDuration = null;
+    
     // Save session
     if (state.timer.mode === 'work') {
         const session = {
@@ -261,6 +270,14 @@ function completeSession() {
         updateStatistics();
         updateSessionHistory();
         saveState();
+        
+        qualitySessionType = 'focus';
+        qualitySessionDuration = state.settings.workDuration;
+    } else {
+        // Break or long break
+        qualitySessionType = 'rest';
+        qualitySessionDuration = state.timer.mode === 'longBreak' ? 
+            state.settings.longBreakDuration : state.settings.breakDuration;
     }
     
     // Show in-app notification
@@ -268,6 +285,13 @@ function completeSession() {
         state.timer.mode === 'work' ? 'Focus session complete!' : 'Break time over!',
         state.timer.mode === 'work' ? 'Time for a break' : 'Ready to focus?'
     );
+    
+    // Show quality dialog immediately if enabled
+    if (state.settings.qualityDialog) {
+        setTimeout(() => {
+            showQualityDialog(qualitySessionType, qualitySessionDuration);
+        }, 500);
+    }
     
     // Auto-start next session if enabled
     setTimeout(() => {
@@ -629,6 +653,173 @@ function updateChart() {
     focusChart.update();
 }
 
+// Quality Chart Functions
+function initializeQualityChart() {
+    const ctx = document.getElementById('qualityChart').getContext('2d');
+    
+    qualityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Focus Quality',
+                    data: [],
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Rest Quality',
+                    data: [],
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 13
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '/10';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+    
+    updateQualityChart();
+}
+
+function updateQualityChart() {
+    if (!qualityChart) return;
+    
+    const ratings = state.qualityRatings || [];
+    const emptyState = document.getElementById('qualityEmptyState');
+    const chartContainer = qualityChart.canvas.parentElement;
+    
+    if (ratings.length === 0) {
+        emptyState.classList.add('show');
+        chartContainer.style.display = 'none';
+        document.getElementById('avgFocusQuality').textContent = '-';
+        document.getElementById('avgRestQuality').textContent = '-';
+        document.getElementById('totalRatings').textContent = '0';
+        return;
+    }
+    
+    emptyState.classList.remove('show');
+    chartContainer.style.display = 'block';
+    
+    // Prepare data
+    const focusRatings = ratings.filter(r => r.type === 'focus');
+    const restRatings = ratings.filter(r => r.type === 'rest');
+    
+    // Create combined time series
+    const allRatings = [...ratings].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    const labels = [];
+    const focusData = [];
+    const restData = [];
+    
+    allRatings.forEach(rating => {
+        const date = new Date(rating.date);
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        labels.push(`${dateStr} ${timeStr}`);
+        
+        if (rating.type === 'focus') {
+            focusData.push(rating.quality);
+            restData.push(null); // No rest data at this point
+        } else {
+            restData.push(rating.quality);
+            focusData.push(null); // No focus data at this point
+        }
+    });
+    
+    qualityChart.data.labels = labels;
+    qualityChart.data.datasets[0].data = focusData;
+    qualityChart.data.datasets[1].data = restData;
+    qualityChart.update();
+    
+    // Update statistics
+    const avgFocus = focusRatings.length > 0 
+        ? (focusRatings.reduce((sum, r) => sum + r.quality, 0) / focusRatings.length).toFixed(1)
+        : '-';
+    const avgRest = restRatings.length > 0
+        ? (restRatings.reduce((sum, r) => sum + r.quality, 0) / restRatings.length).toFixed(1)
+        : '-';
+    
+    document.getElementById('avgFocusQuality').textContent = avgFocus;
+    document.getElementById('avgRestQuality').textContent = avgRest;
+    document.getElementById('totalRatings').textContent = ratings.length;
+}
+
 // Session History
 function updateSessionHistory() {
     const historyContainer = document.getElementById('sessionHistory');
@@ -895,7 +1086,8 @@ async function loadState() {
                 settings: {
                     ...state.settings,
                     ...loadedState.settings
-                }
+                },
+                qualityRatings: loadedState.qualityRatings || []
             };
             
             // Check if today's stats need to be reset
@@ -1044,4 +1236,76 @@ function handleKeyboard(e) {
     if (e.key === 's' && e.target.tagName !== 'INPUT') {
         skipSession();
     }
+}
+
+// Quality Dialog Management
+let currentQualitySessionType = null;
+let currentQualitySessionDuration = null;
+
+function showQualityDialog(sessionType, sessionDuration) {
+    if (!state.settings.qualityDialog) return;
+    
+    currentQualitySessionType = sessionType;
+    currentQualitySessionDuration = sessionDuration;
+    
+    const modal = document.getElementById('qualityDialogModal');
+    const message = document.getElementById('qualityDialogMessage');
+    const label = document.getElementById('qualityLabel');
+    const slider = document.getElementById('qualitySlider');
+    const valueDisplay = document.getElementById('qualityValue');
+    
+    // Set message based on session type
+    if (sessionType === 'focus') {
+        message.textContent = 'How would you rate your focus quality during this session?';
+        label.textContent = 'Focus Quality Rating';
+    } else {
+        message.textContent = 'How would you rate your rest quality during this break?';
+        label.textContent = 'Rest Quality Rating';
+    }
+    
+    // Reset slider to middle value
+    slider.value = 5;
+    valueDisplay.textContent = 5;
+    
+    // Add slider event listener
+    slider.oninput = function() {
+        valueDisplay.textContent = this.value;
+    };
+    
+    modal.classList.add('show');
+}
+
+function submitQualityRating() {
+    const slider = document.getElementById('qualitySlider');
+    const quality = parseInt(slider.value);
+    
+    // Save quality rating
+    const rating = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        type: currentQualitySessionType,
+        quality: quality,
+        sessionDuration: currentQualitySessionDuration
+    };
+    
+    state.qualityRatings.push(rating);
+    saveState();
+    
+    // Update quality chart if it exists
+    if (qualityChart) {
+        updateQualityChart();
+    }
+    
+    closeQualityDialog();
+}
+
+function skipQualityRating() {
+    closeQualityDialog();
+}
+
+function closeQualityDialog() {
+    const modal = document.getElementById('qualityDialogModal');
+    modal.classList.remove('show');
+    currentQualitySessionType = null;
+    currentQualitySessionDuration = null;
 }

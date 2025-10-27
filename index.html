@@ -130,6 +130,32 @@
             </div>
         </div>
 
+        <!-- Quality Trends Section -->
+        <div class="card" id="qualityTrendsCard">
+            <h2 class="card-title">Quality Trends</h2>
+            <div class="quality-stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="avgFocusQuality">-</div>
+                    <div class="stat-label">Avg Focus Quality</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgRestQuality">-</div>
+                    <div class="stat-label">Avg Rest Quality</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalRatings">0</div>
+                    <div class="stat-label">Total Ratings</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="qualityChart"></canvas>
+            </div>
+            <div class="quality-empty-state" id="qualityEmptyState">
+                <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-tertiary);">insights</span>
+                <p style="margin-top: 12px; color: var(--text-secondary);">No quality ratings yet. Complete a session to start tracking!</p>
+            </div>
+        </div>
+
         <!-- Statistics Section -->
         <div class="card">
             <h2 class="card-title">Today's Progress</h2>
@@ -223,6 +249,20 @@
             </div>
 
             <div class="settings-section">
+                <h3 class="settings-section-title">Quality Tracking</h3>
+                <div class="toggle-group">
+                    <span class="toggle-label">Quality Dialog</span>
+                    <div class="toggle-switch active" id="qualityDialogToggle" onclick="toggleSetting('qualityDialog')">
+                        <div class="toggle-switch-handle"></div>
+                    </div>
+                </div>
+                <p class="settings-disclaimer">
+                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">info</span>
+                    This feature prompts you after each session. While it may feel intrusive, tracking quality helps you understand your focus patterns over time.
+                </p>
+            </div>
+
+            <div class="settings-section">
                 <h3 class="settings-section-title">Sessions</h3>
                 <div class="setting-group">
                     <label class="setting-label">Sessions until long break</label>
@@ -294,10 +334,47 @@
             </div>
             
             <div class="changelog-content">
+                <!-- Version 2.1.0 -->
+                <div class="changelog-version">
+                    <div class="version-header">
+                        <h3>Version 2.1.0 <span class="version-badge-tag current">Current</span></h3>
+                        <span class="version-date">October 2025</span>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>✨ New Features</h4>
+                        <ul>
+                            <li><strong>Quality Dialog</strong> - Rate your focus and rest quality after each session</li>
+                            <li><strong>Quality Trends Chart</strong> - Visualize your focus and rest quality over time with dual-line chart</li>
+                            <li><strong>Quality Statistics</strong> - Track average focus quality, rest quality, and total ratings</li>
+                            <li><strong>Settings Control</strong> - Toggle quality tracking on/off with helpful disclaimer</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>📊 Quality Tracking</h4>
+                        <ul>
+                            <li>Rate focus quality (1-10) after work sessions</li>
+                            <li>Rate rest quality (1-10) after breaks</li>
+                            <li>Beautiful slider interface with real-time feedback</li>
+                            <li>Skip option - no pressure to rate every session</li>
+                            <li>Encrypted storage for all quality data</li>
+                            <li>Export/import support included</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🎨 User Experience</h4>
+                        <ul>
+                            <li>Non-intrusive dialog timing (500ms delay)</li>
+                            <li>Works seamlessly with auto-start features</li>
+                            <li>Empty state with helpful guidance</li>
+                            <li>Professional UI matching app design</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Version 2.0.0 -->
                 <div class="changelog-version">
                     <div class="version-header">
-                        <h3>Version 2.0.0 <span class="version-badge-tag current">Current</span></h3>
+                        <h3>Version 2.0.0</h3>
                         <span class="version-date">October 2025</span>
                     </div>
                     <div class="changelog-section">
@@ -358,6 +435,51 @@
                             <li>Keyboard shortcuts</li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quality Dialog Modal -->
+    <div class="quality-dialog-modal" id="qualityDialogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">star</span>
+                    Rate Your Session Quality
+                </h2>
+            </div>
+            
+            <div class="quality-dialog-content">
+                <p class="quality-dialog-message" id="qualityDialogMessage">How would you rate this session?</p>
+                
+                <div class="quality-slider-container">
+                    <label class="quality-label" id="qualityLabel">Quality Rating</label>
+                    <div class="quality-value-display" id="qualityValue">5</div>
+                    <input type="range" class="quality-slider" id="qualitySlider" min="1" max="10" value="5" step="1">
+                    <div class="quality-scale">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                        <span>5</span>
+                        <span>6</span>
+                        <span>7</span>
+                        <span>8</span>
+                        <span>9</span>
+                        <span>10</span>
+                    </div>
+                </div>
+                
+                <div class="quality-buttons">
+                    <button class="btn btn-secondary" onclick="skipQualityRating()">
+                        <span class="material-symbols-outlined">skip_next</span>
+                        <span>Skip</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="submitQualityRating()">
+                        <span class="material-symbols-outlined">check</span>
+                        <span>Submit</span>
+                    </button>
                 </div>
             </div>
         </div>
