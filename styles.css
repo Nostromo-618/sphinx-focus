@@ -904,6 +904,108 @@ body {
     .disclaimer-actions .btn {
         max-width: 100%;
     }
+    
+    /* Mobile improvements */
+    .container {
+        padding: 16px;
+    }
+    
+    .header {
+        padding: 16px 0;
+        margin-bottom: 20px;
+    }
+    
+    .logo-text {
+        font-size: 20px;
+    }
+    
+    .logo-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .card-title {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+    
+    .timer-display {
+        padding: 30px 16px;
+    }
+    
+    .timer-time {
+        font-size: 56px;
+        margin-bottom: 20px;
+    }
+    
+    .timer-controls {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .btn .material-symbols-outlined {
+        font-size: 18px;
+    }
+    
+    .session-settings {
+        gap: 8px;
+    }
+    
+    .setting-label {
+        font-size: 11px;
+    }
+    
+    .setting-input {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .stats-grid {
+        gap: 12px;
+    }
+    
+    .stat-item {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 13px;
+    }
+    
+    .quality-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .progress-ring {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .export-import-controls {
+        flex-direction: column;
+    }
+    
+    .export-import-controls .btn {
+        width: 100%;
+    }
 }
 
 /* Version Badge */
@@ -1308,4 +1410,511 @@ body {
 
 .quality-empty-state.show {
     display: flex;
+}
+
+/* Storage Usage Section in Settings */
+.storage-usage-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.storage-usage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.storage-usage-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.storage-usage-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--success-color);
+    transition: color 0.3s ease;
+}
+
+.storage-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.storage-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s ease;
+}
+
+.storage-usage-details {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+/* Storage Info Modal */
+.storage-info-content {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.storage-info-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.storage-info-content::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.storage-info-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 4px;
+}
+
+.storage-info-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.storage-info-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.storage-info-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.storage-info-section p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.storage-info-section p:last-child {
+    margin-bottom: 0;
+}
+
+/* Storage Limits Grid */
+.storage-limits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.limit-item {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.limit-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+}
+
+.limit-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Storage Features List */
+.storage-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0 0;
+}
+
+.storage-features-list li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.storage-features-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 8px;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Storage Cleanup Stages */
+.storage-cleanup-stages {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cleanup-stage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.stage-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: center;
+    min-width: 60px;
+}
+
+.stage-badge.stage-light {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.stage-badge.stage-medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+.stage-badge.stage-aggressive {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+}
+
+.stage-description {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.stage-description strong {
+    color: var(--primary-color);
+}
+
+/* Storage Info Note */
+.storage-info-note {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.storage-info-note span {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* Extra small devices (phones in portrait, less than 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+    
+    .header {
+        padding: 12px 0;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .logo-text {
+        font-size: 18px;
+    }
+    
+    .logo-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .header-controls {
+        gap: 8px;
+    }
+    
+    .version-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+        margin-right: 0;
+    }
+    
+    .card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .card-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+    
+    .main-grid {
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .timer-display {
+        padding: 20px 12px;
+    }
+    
+    .timer-mode {
+        font-size: 12px;
+        padding: 4px 12px;
+        margin-bottom: 16px;
+    }
+    
+    .timer-time {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .timer-controls {
+        gap: 6px;
+        margin-bottom: 20px;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        gap: 4px;
+    }
+    
+    .btn .material-symbols-outlined {
+        font-size: 16px;
+    }
+    
+    .btn span:not(.material-symbols-outlined) {
+        display: none;
+    }
+    
+    .btn-icon span {
+        display: inline !important;
+    }
+    
+    .session-settings {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 0;
+    }
+    
+    .setting-label {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+    
+    .setting-input {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .stat-item {
+        padding: 10px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+        margin-bottom: 2px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        line-height: 1.3;
+    }
+    
+    .quality-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .quality-stats-grid .stat-item:nth-child(3) {
+        grid-column: span 2;
+    }
+    
+    .chart-container {
+        height: 200px;
+        margin-top: 16px;
+    }
+    
+    .progress-ring {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .task-input-group {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .task-input {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .task-list {
+        min-height: 150px;
+    }
+    
+    .task-item {
+        padding: 10px 12px;
+        margin-bottom: 6px;
+    }
+    
+    .session-history {
+        max-height: 300px;
+    }
+    
+    .session-item {
+        padding: 12px;
+        margin-bottom: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .session-duration {
+        font-size: 16px;
+        align-self: flex-end;
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        max-height: 85vh;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    #changelogModal .modal-content {
+        width: 95%;
+        padding: 16px;
+    }
+    
+    .changelog-section li {
+        font-size: 13px;
+        padding: 6px 0 6px 20px;
+    }
+    
+    .quality-dialog-modal .modal-content {
+        width: 95%;
+        padding: 16px;
+    }
+    
+    .quality-dialog-content {
+        padding: 16px;
+    }
+    
+    .quality-dialog-message {
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+    
+    .quality-value-display {
+        font-size: 40px;
+        top: 40px;
+    }
+    
+    .quality-slider {
+        margin: 70px 0 16px 0;
+    }
+    
+    .quality-buttons .btn {
+        max-width: none;
+        flex: 1;
+    }
+    
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        padding: 12px 16px;
+        transform: translateY(-100px);
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+    }
+    
+    .notification-title {
+        font-size: 14px;
+    }
+    
+    .notification-message {
+        font-size: 13px;
+    }
+    
+    .storage-limits-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .limit-item {
+        padding: 10px;
+    }
+    
+    .limit-value {
+        font-size: 18px;
+    }
+    
+    .cleanup-stage {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .stage-badge {
+        width: 100%;
+    }
+    
+    .storage-info-section h3 {
+        font-size: 16px;
+    }
+    
+    .storage-info-section p,
+    .storage-features-list li,
+    .stage-description {
+        font-size: 13px;
+    }
 }

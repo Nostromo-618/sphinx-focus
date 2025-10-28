@@ -24,7 +24,10 @@
                 <button class="version-badge" onclick="openChangelog()" title="View changelog">
                     <span class="version-text">v<span id="appVersion"></span></span>
                 </button>
-                <button class="btn btn-secondary btn-icon" onclick="openSettings()">
+                <button class="btn btn-secondary btn-icon" onclick="openStorageInfo()" title="Storage information">
+                    <span class="material-symbols-outlined">info</span>
+                </button>
+                <button class="btn btn-secondary btn-icon" onclick="openSettings()" title="Settings">
                     <span class="material-symbols-outlined">settings</span>
                 </button>
                 <div class="theme-selector">
@@ -146,6 +149,14 @@
                     <div class="stat-value" id="totalRatings">0</div>
                     <div class="stat-label">Total Ratings</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="skippedPomodoros">0</div>
+                    <div class="stat-label">Skipped Pomodoros</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="skippedRests">0</div>
+                    <div class="stat-label">Skipped Rests</div>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="qualityChart"></canvas>
@@ -201,13 +212,27 @@
     </div>
 
     <!-- Settings Modal -->
-    <div class="settings-modal" id="settingsModal">
+    <div class="settings-modal" id="settingsModal" onclick="closeModalOnBackgroundClick(event, 'settingsModal', closeSettings)">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Settings</h2>
                 <button class="modal-close" onclick="closeSettings()">
                     <span class="material-symbols-outlined">close</span>
                 </button>
+            </div>
+            
+            <!-- Storage Usage Indicator -->
+            <div class="storage-usage-section">
+                <div class="storage-usage-header">
+                    <span class="storage-usage-label">Storage Usage</span>
+                    <span class="storage-usage-value" id="storageUsageText">0%</span>
+                </div>
+                <div class="storage-progress-bar">
+                    <div class="storage-progress-fill" id="storageProgressFill"></div>
+                </div>
+                <div class="storage-usage-details">
+                    <span id="storageUsageDetails">0 KB of 4 MB used</span>
+                </div>
             </div>
             
             <div class="settings-section">
@@ -317,8 +342,102 @@
         </div>
     </div>
 
+    <!-- Storage Info Modal -->
+    <div class="settings-modal" id="storageInfoModal" onclick="closeModalOnBackgroundClick(event, 'storageInfoModal', closeStorageInfo)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">storage</span>
+                    Storage Management
+                </h2>
+                <button class="modal-close" onclick="closeStorageInfo()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="storage-info-content">
+                <div class="storage-info-section">
+                    <h3>How Storage Works</h3>
+                    <p>Sphinx Focus stores all your data <strong>locally in your browser</strong> using encrypted localStorage. Your data never leaves your device.</p>
+                </div>
+                
+                <div class="storage-info-section">
+                    <h3>Storage Limits</h3>
+                    <div class="storage-limits-grid">
+                        <div class="limit-item">
+                            <div class="limit-label">Maximum Storage</div>
+                            <div class="limit-value">4 MB</div>
+                        </div>
+                        <div class="limit-item">
+                            <div class="limit-label">Sessions Limit</div>
+                            <div class="limit-value">1,000</div>
+                        </div>
+                        <div class="limit-item">
+                            <div class="limit-label">Quality Ratings</div>
+                            <div class="limit-value">1,000</div>
+                        </div>
+                        <div class="limit-item">
+                            <div class="limit-label">Data Retention</div>
+                            <div class="limit-value">90 days</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="storage-info-section">
+                    <h3>Automatic Protection</h3>
+                    <p>Sphinx Focus automatically manages storage for you:</p>
+                    <ul class="storage-features-list">
+                        <li><strong>90-Day Retention:</strong> Data older than 90 days is automatically removed</li>
+                        <li><strong>Progressive Cleanup:</strong> When storage reaches 75%, older data is gradually removed</li>
+                        <li><strong>Smart Limits:</strong> Only the most recent 1,000 sessions and ratings are kept</li>
+                        <li><strong>User Alerts:</strong> You'll be notified when storage is getting full</li>
+                    </ul>
+                </div>
+                
+                <div class="storage-info-section">
+                    <h3>What Happens When Storage Gets Full?</h3>
+                    <div class="storage-cleanup-stages">
+                        <div class="cleanup-stage">
+                            <div class="stage-badge stage-light">75-79%</div>
+                            <div class="stage-description">
+                                <strong>Light Cleanup:</strong> Keep last 500 sessions/ratings, remove completed tasks older than 7 days
+                            </div>
+                        </div>
+                        <div class="cleanup-stage">
+                            <div class="stage-badge stage-medium">80-89%</div>
+                            <div class="stage-description">
+                                <strong>Medium Cleanup:</strong> Keep last 250 sessions/ratings, remove all completed tasks
+                            </div>
+                        </div>
+                        <div class="cleanup-stage">
+                            <div class="stage-badge stage-aggressive">90%+</div>
+                            <div class="stage-description">
+                                <strong>Aggressive Cleanup:</strong> Keep last 100 sessions/ratings, keep only active tasks
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="storage-info-section">
+                    <h3>Best Practices</h3>
+                    <ul class="storage-features-list">
+                        <li><strong>Export Regularly:</strong> Use "Export Data" monthly to backup your progress</li>
+                        <li><strong>Clear Old Data:</strong> After exporting, use "Clear All Data" to start fresh</li>
+                        <li><strong>Manage Tasks:</strong> Complete and delete tasks you no longer need</li>
+                        <li><strong>Watch Warnings:</strong> Pay attention to storage notifications</li>
+                    </ul>
+                </div>
+                
+                <div class="storage-info-section storage-info-note">
+                    <span class="material-symbols-outlined" style="font-size: 20px; vertical-align: middle;">info</span>
+                    <span><strong>Note:</strong> Your active tasks, settings, and preferences are never automatically deleted.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Changelog Modal -->
-    <div class="settings-modal" id="changelogModal">
+    <div class="settings-modal" id="changelogModal" onclick="closeModalOnBackgroundClick(event, 'changelogModal', closeChangelog)">
         <div class="modal-content">
             <div class="modal-logo">
                 <img src="media/spinx-full-no-background.png" alt="Sphinx" class="modal-logo-img">
@@ -334,10 +453,60 @@
             </div>
             
             <div class="changelog-content">
+                <!-- Version 2.1.1 -->
+                <div class="changelog-version">
+                    <div class="version-header">
+                        <h3>Version 2.1.1 <span class="version-badge-tag current">Current</span></h3>
+                        <span class="version-date">October 2025</span>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>✨ New Features</h4>
+                        <ul>
+                            <li><strong>Skip Tracking</strong> - Track and display skipped Pomodoros and skipped Rests</li>
+                            <li>Two new stat cards in Quality Trends section showing skip counts</li>
+                            <li>Persistent storage of skip statistics across sessions</li>
+                            <li><strong>Smart Storage Management</strong> - Automatic data cleanup when storage limits are approached</li>
+                            <li>Progressive cleanup strategies (light, medium, aggressive) based on storage usage</li>
+                            <li>Automatic removal of data older than 90 days</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🛡️ Storage Protection</h4>
+                        <ul>
+                            <li><strong>QuotaExceededError Handling</strong> - Gracefully handles storage full scenarios</li>
+                            <li>User notifications when storage is full or nearing capacity</li>
+                            <li>Automatic retry with data cleanup if save fails due to quota</li>
+                            <li>Storage limits reduced for safety: 1,000 sessions, 1,000 quality ratings (down from 10,000 each)</li>
+                            <li>Warnings at 75% storage usage, cleanup at 80%+</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🎨 User Experience</h4>
+                        <ul>
+                            <li><strong>Modal Improvements</strong> - Modals can now be closed by clicking on the background</li>
+                            <li>Enhanced modal interaction for better usability</li>
+                            <li><strong>Mobile Responsiveness</strong> - Significantly improved mobile experience for all screen sizes</li>
+                            <li>Optimized layout, typography, and spacing for phones (including iPhone SE, Pixel 7, etc.)</li>
+                            <li>Better button sizing and touch targets on mobile devices</li>
+                            <li>Improved readability and usability on small screens</li>
+                            <li><strong>Storage Info Modal</strong> - New info icon with comprehensive storage management explanation</li>
+                            <li><strong>Storage Usage Indicator</strong> - Real-time progress bar in settings showing storage usage</li>
+                            <li>Color-coded storage warnings (green &lt; 75%, yellow 75-89%, red 90%+)</li>
+                        </ul>
+                    </div>
+                    <div class="changelog-section">
+                        <h4>🐛 Bug Fixes</h4>
+                        <ul>
+                            <li><strong>Quality Chart Display</strong> - Fixed chart rendering to show smooth curves connecting data points instead of isolated dots</li>
+                            <li>Enhanced visual continuity in Quality Trends chart for better data visualization</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Version 2.1.0 -->
                 <div class="changelog-version">
                     <div class="version-header">
-                        <h3>Version 2.1.0 <span class="version-badge-tag current">Current</span></h3>
+                        <h3>Version 2.1.0</h3>
                         <span class="version-date">October 2025</span>
                     </div>
                     <div class="changelog-section">
@@ -441,7 +610,7 @@
     </div>
 
     <!-- Quality Dialog Modal -->
-    <div class="quality-dialog-modal" id="qualityDialogModal">
+    <div class="quality-dialog-modal" id="qualityDialogModal" onclick="closeModalOnBackgroundClick(event, 'qualityDialogModal', closeQualityDialog)">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">
