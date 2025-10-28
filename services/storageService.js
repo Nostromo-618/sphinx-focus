@@ -12,11 +12,13 @@ const DISCLAIMER_ACCEPTED_KEY = 'sphinxFocusDisclaimerAccepted';
 const MIGRATION_FLAG_KEY = 'sphinxFocusMigrated';
 
 // Limits and constraints
-const MAX_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB limit
-const MAX_TASKS = 1000; // Maximum number of tasks
-const MAX_SESSIONS = 10000; // Maximum number of sessions
-const MAX_QUALITY_RATINGS = 10000; // Maximum number of quality ratings
+const MAX_STORAGE_SIZE = 4 * 1024 * 1024; // 4MB limit (conservative, accounting for encryption overhead)
+const WARNING_STORAGE_SIZE = 3 * 1024 * 1024; // 3MB warning threshold
+const MAX_TASKS = 500; // Maximum number of tasks (reduced for safety)
+const MAX_SESSIONS = 1000; // Maximum number of sessions (reduced from 10000)
+const MAX_QUALITY_RATINGS = 1000; // Maximum number of quality ratings (reduced from 10000)
 const MAX_IMPORT_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const DATA_RETENTION_DAYS = 90; // Keep data for 90 days by default
 
 /**
  * Sanitize string to prevent XSS attacks
@@ -53,10 +55,10 @@ function isValidTimestamp(timestamp) {
 }
 
 /**
- * Check if storage quota is within limits
- * @returns {boolean} True if within limits
+ * Get current storage usage in bytes
+ * @returns {number} Current storage size in bytes
  */
-function checkStorageSize() {
+function getStorageSize() {
   try {
     let totalSize = 0;
     for (const key in localStorage) {
@@ -65,11 +67,123 @@ function checkStorageSize() {
         totalSize += (key.length + value.length) * 2; // UTF-16 encoding
       }
     }
-    return totalSize < MAX_STORAGE_SIZE;
+    return totalSize;
+  } catch (error) {
+    console.error('Error calculating storage size:', error);
+    return 0;
+  }
+}
+
+/**
+ * Check if storage quota is within limits
+ * @returns {Object} Storage status info
+ */
+function checkStorageSize() {
+  try {
+    const currentSize = getStorageSize();
+    const percentUsed = (currentSize / MAX_STORAGE_SIZE) * 100;
+    
+    return {
+      withinLimit: currentSize < MAX_STORAGE_SIZE,
+      nearingLimit: currentSize >= WARNING_STORAGE_SIZE,
+      currentSize,
+      maxSize: MAX_STORAGE_SIZE,
+      percentUsed: Math.round(percentUsed),
+      availableSpace: MAX_STORAGE_SIZE - currentSize
+    };
   } catch (error) {
     console.error('Error checking storage size:', error);
-    return false;
+    return {
+      withinLimit: false,
+      nearingLimit: true,
+      currentSize: 0,
+      maxSize: MAX_STORAGE_SIZE,
+      percentUsed: 100,
+      availableSpace: 0
+    };
   }
+}
+
+/**
+ * Clean old data beyond retention period
+ * @param {Object} state - State object to clean
+ * @returns {Object} Cleaned state
+ */
+function cleanOldData(state) {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - DATA_RETENTION_DAYS);
+  const cutoffTime = cutoffDate.getTime();
+  
+  // Clean old sessions
+  if (state.sessions && state.sessions.length > 0) {
+    const originalCount = state.sessions.length;
+    state.sessions = state.sessions.filter(session => {
+      const sessionDate = new Date(session.date).getTime();
+      return sessionDate > cutoffTime;
+    });
+    
+    if (state.sessions.length < originalCount) {
+      console.log(`Cleaned ${originalCount - state.sessions.length} old sessions beyond ${DATA_RETENTION_DAYS} days`);
+    }
+  }
+  
+  // Clean old quality ratings
+  if (state.qualityRatings && state.qualityRatings.length > 0) {
+    const originalCount = state.qualityRatings.length;
+    state.qualityRatings = state.qualityRatings.filter(rating => {
+      const ratingDate = new Date(rating.date).getTime();
+      return ratingDate > cutoffTime;
+    });
+    
+    if (state.qualityRatings.length < originalCount) {
+      console.log(`Cleaned ${originalCount - state.qualityRatings.length} old quality ratings beyond ${DATA_RETENTION_DAYS} days`);
+    }
+  }
+  
+  return state;
+}
+
+/**
+ * Progressive cleanup strategy when storage is full
+ * @param {Object} state - State object to trim
+ * @param {string} level - Cleanup level: 'light', 'medium', 'aggressive'
+ * @returns {Object} Trimmed state
+ */
+function progressiveCleanup(state, level = 'light') {
+  console.log(`Applying ${level} cleanup strategy`);
+  
+  switch (level) {
+    case 'light':
+      // Keep last 500 sessions, 500 quality ratings
+      state.sessions = state.sessions.slice(-500);
+      state.qualityRatings = (state.qualityRatings || []).slice(-500);
+      // Remove completed tasks older than 7 days
+      const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      state.tasks = state.tasks.filter(task => {
+        if (!task.completed) return true;
+        const taskDate = new Date(task.createdAt).getTime();
+        return taskDate > weekAgo;
+      });
+      break;
+      
+    case 'medium':
+      // Keep last 250 sessions, 250 quality ratings
+      state.sessions = state.sessions.slice(-250);
+      state.qualityRatings = (state.qualityRatings || []).slice(-250);
+      // Remove all completed tasks
+      state.tasks = state.tasks.filter(task => !task.completed);
+      break;
+      
+    case 'aggressive':
+      // Keep last 100 sessions, 100 quality ratings
+      state.sessions = state.sessions.slice(-100);
+      state.qualityRatings = (state.qualityRatings || []).slice(-100);
+      // Keep only active tasks
+      state.tasks = state.tasks.filter(task => !task.completed).slice(-50);
+      break;
+  }
+  
+  return state;
 }
 
 /**
@@ -306,7 +420,7 @@ const storageService = {
   /**
    * Save state to encrypted storage
    * @param {Object} state - State object to save
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} Result object with success status and details
    */
   async saveState(state) {
     try {
@@ -315,17 +429,11 @@ const storageService = {
         throw new Error('Invalid state structure');
       }
       
-      // Check storage size
-      if (!checkStorageSize()) {
-        console.warn('Storage quota nearly exceeded');
-        // Try to free up space by limiting history
-        if (state.sessions.length > 100) {
-          state.sessions = state.sessions.slice(-100);
-        }
-      }
+      // Clean old data first
+      state = cleanOldData(state);
       
       // Sanitize state before saving
-      const sanitizedState = {
+      let sanitizedState = {
         ...state,
         tasks: state.tasks
           .map(task => sanitizeTask(task))
@@ -338,18 +446,82 @@ const storageService = {
         qualityRatings: (state.qualityRatings || [])
           .map(rating => sanitizeQualityRating(rating))
           .filter(rating => rating !== null)
-          .slice(-MAX_QUALITY_RATINGS)
+          .slice(-MAX_QUALITY_RATINGS),
+        skippedSessions: state.skippedSessions || { pomodoros: 0, rests: 0 }
       };
       
-      // Encrypt and save
-      const stateJson = JSON.stringify(sanitizedState);
-      const encrypted = await encryptionService.encrypt(stateJson);
-      localStorage.setItem(STATE_STORAGE_KEY, encrypted);
+      // Check storage size before saving
+      const storageStatus = checkStorageSize();
       
-      return true;
+      // Progressive cleanup if needed
+      if (storageStatus.nearingLimit || !storageStatus.withinLimit) {
+        console.warn(`Storage at ${storageStatus.percentUsed}% - applying cleanup`);
+        
+        if (storageStatus.percentUsed >= 90) {
+          sanitizedState = progressiveCleanup(sanitizedState, 'aggressive');
+        } else if (storageStatus.percentUsed >= 80) {
+          sanitizedState = progressiveCleanup(sanitizedState, 'medium');
+        } else {
+          sanitizedState = progressiveCleanup(sanitizedState, 'light');
+        }
+      }
+      
+      // Try to save
+      try {
+        const stateJson = JSON.stringify(sanitizedState);
+        const encrypted = await encryptionService.encrypt(stateJson);
+        localStorage.setItem(STATE_STORAGE_KEY, encrypted);
+        
+        return {
+          success: true,
+          cleaned: storageStatus.nearingLimit,
+          storageStatus: checkStorageSize()
+        };
+      } catch (saveError) {
+        // Check if it's a quota exceeded error
+        if (saveError.name === 'QuotaExceededError' || 
+            saveError.code === 22 || 
+            saveError.code === 1014 ||
+            saveError.message?.includes('quota')) {
+          
+          console.error('Storage quota exceeded! Applying aggressive cleanup...');
+          
+          // Apply aggressive cleanup
+          sanitizedState = progressiveCleanup(sanitizedState, 'aggressive');
+          
+          // Try saving again
+          try {
+            const stateJson = JSON.stringify(sanitizedState);
+            const encrypted = await encryptionService.encrypt(stateJson);
+            localStorage.setItem(STATE_STORAGE_KEY, encrypted);
+            
+            return {
+              success: true,
+              cleaned: true,
+              quotaExceeded: true,
+              message: 'Storage was full. Older data has been removed to save new data.',
+              storageStatus: checkStorageSize()
+            };
+          } catch (retryError) {
+            console.error('Failed to save even after cleanup:', retryError);
+            return {
+              success: false,
+              quotaExceeded: true,
+              message: 'Storage is full. Please export your data and clear old sessions.',
+              storageStatus: checkStorageSize()
+            };
+          }
+        }
+        
+        throw saveError; // Re-throw if not quota error
+      }
     } catch (error) {
       console.error('Error saving state:', error);
-      return false;
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to save data. Please try again.'
+      };
     }
   },
 
@@ -569,6 +741,27 @@ const storageService = {
       console.error('Error saving disclaimer status:', error);
       return false;
     }
+  },
+
+  /**
+   * Get current storage usage information
+   * @returns {Object} Storage status information
+   */
+  getStorageInfo() {
+    return checkStorageSize();
+  },
+
+  /**
+   * Format bytes to human readable string
+   * @param {number} bytes - Bytes to format
+   * @returns {string} Formatted string
+   */
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   },
 
   /**

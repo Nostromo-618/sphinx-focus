@@ -1,5 +1,5 @@
 // App Version
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.1.1';
 
 // State Management
 let state = {
@@ -30,6 +30,10 @@ let state = {
     tasks: [],
     sessions: [],
     qualityRatings: [], // Quality ratings for focus and rest sessions
+    skippedSessions: {
+        pomodoros: 0,
+        rests: 0
+    },
     statistics: {
         todayPomodoros: 0,
         todayFocusTime: 0,
@@ -59,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateTaskList();
     initializeChart();
     initializeQualityChart();
+    updateQualityStatistics(); // Initialize skip statistics display
     initializeNotifications(); // Better notification handling
     
     // Update settings inputs
@@ -232,6 +237,19 @@ function resetTimer() {
 
 function skipSession() {
     pauseTimer();
+    
+    // Track skipped sessions
+    if (state.timer.mode === 'work') {
+        state.skippedSessions.pomodoros++;
+    } else {
+        // Count both break and longBreak as rests
+        state.skippedSessions.rests++;
+    }
+    
+    // Update quality statistics display
+    updateQualityStatistics();
+    saveState();
+    
     nextSession();
 }
 
@@ -674,7 +692,8 @@ function initializeQualityChart() {
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     tension: 0.4,
-                    fill: false
+                    fill: false,
+                    spanGaps: true
                 },
                 {
                     label: 'Rest Quality',
@@ -688,7 +707,8 @@ function initializeQualityChart() {
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     tension: 0.4,
-                    fill: false
+                    fill: false,
+                    spanGaps: true
                 }
             ]
         },
@@ -818,6 +838,18 @@ function updateQualityChart() {
     document.getElementById('avgFocusQuality').textContent = avgFocus;
     document.getElementById('avgRestQuality').textContent = avgRest;
     document.getElementById('totalRatings').textContent = ratings.length;
+    
+    // Update skip statistics
+    updateQualityStatistics();
+}
+
+function updateQualityStatistics() {
+    // Update skipped sessions display
+    const skippedPomodoros = state.skippedSessions?.pomodoros || 0;
+    const skippedRests = state.skippedSessions?.rests || 0;
+    
+    document.getElementById('skippedPomodoros').textContent = skippedPomodoros;
+    document.getElementById('skippedRests').textContent = skippedRests;
 }
 
 // Session History
@@ -851,10 +883,63 @@ function updateSessionHistory() {
 // Settings
 function openSettings() {
     document.getElementById('settingsModal').classList.add('show');
+    updateStorageDisplay(); // Update storage info when opening settings
 }
 
 function closeSettings() {
     document.getElementById('settingsModal').classList.remove('show');
+}
+
+// Storage Info Modal
+function openStorageInfo() {
+    document.getElementById('storageInfoModal').classList.add('show');
+}
+
+function closeStorageInfo() {
+    document.getElementById('storageInfoModal').classList.remove('show');
+}
+
+// Update storage usage display
+function updateStorageDisplay() {
+    const storageInfo = storageService.getStorageInfo();
+    
+    // Update percentage text
+    const percentText = document.getElementById('storageUsageText');
+    if (percentText) {
+        percentText.textContent = `${storageInfo.percentUsed}%`;
+        
+        // Color code based on usage
+        if (storageInfo.percentUsed >= 90) {
+            percentText.style.color = 'var(--danger-color)';
+        } else if (storageInfo.percentUsed >= 75) {
+            percentText.style.color = 'var(--warning-color)';
+        } else {
+            percentText.style.color = 'var(--success-color)';
+        }
+    }
+    
+    // Update progress bar
+    const progressFill = document.getElementById('storageProgressFill');
+    if (progressFill) {
+        progressFill.style.width = `${storageInfo.percentUsed}%`;
+        
+        // Color code the progress bar
+        if (storageInfo.percentUsed >= 90) {
+            progressFill.style.background = 'var(--danger-color)';
+        } else if (storageInfo.percentUsed >= 75) {
+            progressFill.style.background = 'var(--warning-color)';
+        } else {
+            progressFill.style.background = 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))';
+        }
+    }
+    
+    // Update details text
+    const detailsText = document.getElementById('storageUsageDetails');
+    if (detailsText) {
+        const usedFormatted = storageService.formatBytes(storageInfo.currentSize);
+        const maxFormatted = storageService.formatBytes(storageInfo.maxSize);
+        detailsText.textContent = `${usedFormatted} of ${maxFormatted} used`;
+    }
 }
 
 function toggleSetting(setting) {
@@ -1061,7 +1146,20 @@ function playNotificationSound() {
 // Data Management
 async function saveState() {
     try {
-        await storageService.saveState(state);
+        const result = await storageService.saveState(state);
+        
+        if (!result.success) {
+            console.error('Failed to save state:', result.error);
+            showNotification('Save Error', result.message || 'Failed to save data. Please try again.');
+            return;
+        }
+        
+        // Notify user if data was cleaned due to storage limits
+        if (result.quotaExceeded) {
+            showNotification('Storage Full', result.message);
+        } else if (result.cleaned && result.storageStatus?.percentUsed >= 80) {
+            showNotification('Storage Warning', `Storage is ${result.storageStatus.percentUsed}% full. Consider exporting and clearing old data.`);
+        }
     } catch (error) {
         console.error('Failed to save state:', error);
         showNotification('Error', 'Failed to save data. Please try again.');
@@ -1087,7 +1185,11 @@ async function loadState() {
                     ...state.settings,
                     ...loadedState.settings
                 },
-                qualityRatings: loadedState.qualityRatings || []
+                qualityRatings: loadedState.qualityRatings || [],
+                skippedSessions: loadedState.skippedSessions || {
+                    pomodoros: 0,
+                    rests: 0
+                }
             };
             
             // Check if today's stats need to be reset
@@ -1217,6 +1319,14 @@ function openChangelog() {
 
 function closeChangelog() {
     document.getElementById('changelogModal').classList.remove('show');
+}
+
+// Modal Background Click Handler
+function closeModalOnBackgroundClick(event, modalId, closeFunction) {
+    // Only close if clicking directly on the modal background, not its children
+    if (event.target.id === modalId) {
+        closeFunction();
+    }
 }
 
 // Keyboard Shortcuts
