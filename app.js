@@ -415,13 +415,8 @@ function addTask() {
             createdAt: new Date().toISOString()
         };
         
-        // Add new tasks at the top (before any completed tasks)
-        const firstCompletedIndex = state.tasks.findIndex(t => t.completed);
-        if (firstCompletedIndex !== -1) {
-            state.tasks.splice(firstCompletedIndex, 0, task);
-        } else {
-            state.tasks.unshift(task);
-        }
+        // Always add new tasks at the very top
+        state.tasks.unshift(task);
         
         input.value = '';
         updateTaskList();
@@ -443,14 +438,9 @@ function toggleTask(taskId) {
             state.tasks.splice(taskIndex, 1);
             state.tasks.push(task);
         } else {
-            // Move uncompleted task to top (before other completed tasks)
+            // Move uncompleted task to the very top
             state.tasks.splice(taskIndex, 1);
-            const firstCompletedIndex = state.tasks.findIndex(t => t.completed);
-            if (firstCompletedIndex !== -1) {
-                state.tasks.splice(firstCompletedIndex, 0, task);
-            } else {
-                state.tasks.push(task);
-            }
+            state.tasks.unshift(task);
         }
         
         updateTaskList();
