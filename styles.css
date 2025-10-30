@@ -674,6 +674,8 @@ body {
 #changelogModal .modal-content {
     max-width: 900px;
     width: 85%;
+    /* Prevent double scrollbar: only inner .changelog-content should scroll */
+    overflow-y: hidden;
 }
 
 .modal-header {
@@ -1192,6 +1194,8 @@ body {
         max-width: 95%;
         width: 95%;
         padding: 20px;
+        /* Prevent double scrollbar on mobile as well */
+        overflow-y: hidden;
     }
     
     .changelog-content {
