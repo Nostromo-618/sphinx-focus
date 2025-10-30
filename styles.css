@@ -678,6 +678,11 @@ body {
     overflow-y: hidden;
 }
 
+/* Prevent double scrollbar on Storage Info modal: only inner content should scroll */
+#storageInfoModal .modal-content {
+    overflow-y: hidden;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -1043,6 +1048,8 @@ body {
     max-height: 70vh;
     overflow-y: auto;
     padding: 20px 0;
+    padding-right: 16px; /* spacing from scrollbar */
+    scrollbar-gutter: stable both-edges; /* keep space for styled scrollbar */
 }
 
 /* Beautiful custom scrollbar */
@@ -1200,6 +1207,8 @@ body {
     
     .changelog-content {
         max-height: 65vh;
+        padding-right: 14px;
+        scrollbar-gutter: stable both-edges;
     }
     
     .version-header {
@@ -1473,6 +1482,8 @@ body {
     max-height: 70vh;
     overflow-y: auto;
     padding: 20px 0;
+    padding-right: 16px; /* spacing from scrollbar */
+    scrollbar-gutter: stable both-edges;
 }
 
 .storage-info-content::-webkit-scrollbar {
@@ -1892,6 +1903,12 @@ body {
     .storage-limits-grid {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+
+    /* Ensure spacing near scrollbar in storage info on mobile */
+    .storage-info-content {
+        padding-right: 14px;
+        scrollbar-gutter: stable both-edges;
     }
     
     .limit-item {
