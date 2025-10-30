@@ -1,0 +1,13 @@
+Always work on feature branches first
+
+Rules:
+1. Default working branch is dev-new-features. Do not commit directly to main.
+2. Create or switch to dev-new-features before making edits.
+3. Open PRs from dev-new-features to main for merges.
+4. Keep commits small and descriptive.
+5. If a hotfix on main is necessary, cherry-pick into dev-new-features afterward.
+
+Rationale:
+- Ensures safe development flow and easier review.
+- Prevents accidental changes being committed to main.
+

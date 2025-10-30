@@ -674,6 +674,13 @@ body {
 #changelogModal .modal-content {
     max-width: 900px;
     width: 85%;
+    /* Prevent double scrollbar: only inner .changelog-content should scroll */
+    overflow-y: hidden;
+}
+
+/* Prevent double scrollbar on Storage Info modal: only inner content should scroll */
+#storageInfoModal .modal-content {
+    overflow-y: hidden;
 }
 
 .modal-header {
@@ -1041,6 +1048,8 @@ body {
     max-height: 70vh;
     overflow-y: auto;
     padding: 20px 0;
+    padding-right: 16px; /* spacing from scrollbar */
+    scrollbar-gutter: stable both-edges; /* keep space for styled scrollbar */
 }
 
 /* Beautiful custom scrollbar */
@@ -1192,10 +1201,14 @@ body {
         max-width: 95%;
         width: 95%;
         padding: 20px;
+        /* Prevent double scrollbar on mobile as well */
+        overflow-y: hidden;
     }
     
     .changelog-content {
         max-height: 65vh;
+        padding-right: 14px;
+        scrollbar-gutter: stable both-edges;
     }
     
     .version-header {
@@ -1469,6 +1482,8 @@ body {
     max-height: 70vh;
     overflow-y: auto;
     padding: 20px 0;
+    padding-right: 16px; /* spacing from scrollbar */
+    scrollbar-gutter: stable both-edges;
 }
 
 .storage-info-content::-webkit-scrollbar {
@@ -1888,6 +1903,12 @@ body {
     .storage-limits-grid {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+
+    /* Ensure spacing near scrollbar in storage info on mobile */
+    .storage-info-content {
+        padding-right: 14px;
+        scrollbar-gutter: stable both-edges;
     }
     
     .limit-item {
