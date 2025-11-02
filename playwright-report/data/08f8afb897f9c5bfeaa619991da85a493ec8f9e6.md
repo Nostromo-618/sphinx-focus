@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - img "Sphinx" [ref=e6]
+        - generic [ref=e7]: Sphinx Focus
+      - generic [ref=e8]:
+        - button "v2.1.2" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: v2.1.2
+        - button "visibility" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: visibility
+        - button "info" [ref=e13] [cursor=pointer]:
+          - generic [ref=e14]: info
+        - button "settings" [active] [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]: settings
+        - button "contrast" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: contrast
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - heading "Pomodoro Timer" [level=2] [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Focus Time
+          - generic [ref=e25]: 25:00
+          - img [ref=e26]
+        - generic [ref=e29]:
+          - button "play_arrow Start" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: play_arrow
+            - generic [ref=e32]: Start
+          - button "refresh Reset" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: refresh
+            - generic [ref=e35]: Reset
+          - button "skip_next Skip" [ref=e36] [cursor=pointer]:
+            - generic [ref=e37]: skip_next
+            - generic [ref=e38]: Skip
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: Focus (min)
+            - spinbutton [ref=e42]: "25"
+          - generic [ref=e43]:
+            - generic [ref=e44]: Break (min)
+            - spinbutton [ref=e45]: "5"
+          - generic [ref=e46]:
+            - generic [ref=e47]: Long Break (min)
+            - spinbutton [ref=e48]: "15"
+      - generic [ref=e49]:
+        - heading "Tasks & Goals" [level=2] [ref=e50]
+        - generic [ref=e51]:
+          - textbox "What are you working on?" [ref=e52]
+          - button "Add" [ref=e53] [cursor=pointer]
+        - generic [ref=e55]: No tasks yet. Add one above!
+    - generic [ref=e56]:
+      - heading "Quality Trends" [level=2] [ref=e57]
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]: "-"
+          - generic [ref=e61]: Avg Focus Quality
+        - generic [ref=e62]:
+          - generic [ref=e63]: "-"
+          - generic [ref=e64]: Avg Rest Quality
+        - generic [ref=e65]:
+          - generic [ref=e66]: "0"
+          - generic [ref=e67]: Total Ratings
+        - generic [ref=e68]:
+          - generic [ref=e69]: "0"
+          - generic [ref=e70]: Skipped Pomodoros
+        - generic [ref=e71]:
+          - generic [ref=e72]: "0"
+          - generic [ref=e73]: Skipped Rests
+      - generic [ref=e74]:
+        - generic [ref=e75]: insights
+        - paragraph [ref=e76]: No quality ratings yet. Complete a session to start tracking!
+    - generic [ref=e77]:
+      - heading "Today's Progress" [level=2] [ref=e78]
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]: "0"
+          - generic [ref=e82]: Pomodoros
+        - generic [ref=e83]:
+          - generic [ref=e84]: 0h 0m
+          - generic [ref=e85]: Focus Time
+        - generic [ref=e86]:
+          - generic [ref=e87]: "0"
+          - generic [ref=e88]: Tasks Completed
+        - generic [ref=e89]:
+          - generic [ref=e90]: "0"
+          - generic [ref=e91]: Day Streak
+    - generic [ref=e94]:
+      - heading "Session History" [level=2] [ref=e95]
+      - generic [ref=e97]: No sessions yet. Start your first Pomodoro!
+      - generic [ref=e98]:
+        - button "download Export Data" [ref=e99] [cursor=pointer]:
+          - generic [ref=e100]: download
+          - generic [ref=e101]: Export Data
+        - button "upload Import Data" [ref=e102] [cursor=pointer]:
+          - generic [ref=e103]: upload
+          - generic [ref=e104]: Import Data
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - heading "Settings" [level=2] [ref=e108]
+      - button "close" [ref=e109] [cursor=pointer]:
+        - generic [ref=e110]: close
+    - generic [ref=e111]:
+      - generic [ref=e112]:
+        - generic [ref=e113]: Storage Usage
+        - generic [ref=e114]: 0%
+      - generic [ref=e116]: 350 Bytes of 4 MB used
+    - generic [ref=e117]:
+      - heading "Notifications" [level=3] [ref=e118]
+      - generic [ref=e120]: Sound Notifications
+      - generic [ref=e124]: Browser Notifications
+    - generic [ref=e127]:
+      - heading "Timer Settings" [level=3] [ref=e128]
+      - generic [ref=e130]: Auto-start Breaks
+      - generic [ref=e134]: Auto-start Pomodoros
+      - generic [ref=e138]: Resume Timer After Refresh
+    - generic [ref=e141]:
+      - heading "Quality Tracking" [level=3] [ref=e142]
+      - generic [ref=e144]: Quality Dialog
+      - paragraph [ref=e147]:
+        - generic [ref=e148]: info
+        - text: This feature prompts you after each session. While it may feel intrusive, tracking quality helps you understand your focus patterns over time.
+    - generic [ref=e149]:
+      - heading "Sessions" [level=3] [ref=e150]
+      - generic [ref=e151]:
+        - generic [ref=e152]: Sessions until long break
+        - spinbutton [ref=e153]: "4"
+    - button "delete Clear All Data" [ref=e155] [cursor=pointer]:
+      - generic [ref=e156]: delete
+      - generic [ref=e157]: Clear All Data
+  - generic [ref=e158]:
+    - generic [ref=e159]: visibility
+    - generic [ref=e160]: Focus Mode Active (ESC to exit)
+  - generic [ref=e161]:
+    - generic [ref=e163]: notifications
+    - generic [ref=e164]:
+      - generic [ref=e165]: Focus Mode Active
+      - generic [ref=e166]: Press ESC or Ctrl+F to exit
+  - text: ✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓ • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
+```

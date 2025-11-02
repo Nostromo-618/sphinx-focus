@@ -1,0 +1,104 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - img "Sphinx" [ref=e6]
+        - generic [ref=e7]: Sphinx Focus
+      - generic [ref=e8]:
+        - button "v2.1.2" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: v2.1.2
+        - button "visibility" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: visibility
+        - button "info" [ref=e13] [cursor=pointer]:
+          - generic [ref=e14]: info
+        - button "settings" [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]: settings
+        - button "contrast" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: contrast
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - heading "Pomodoro Timer" [level=2] [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Focus Time
+          - generic [ref=e25]: 25:00
+          - img [ref=e26]
+        - generic [ref=e29]:
+          - button "pause" [active] [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: pause
+          - button "refresh" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]: refresh
+          - button "skip_next" [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]: skip_next
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: Focus (min)
+            - spinbutton [ref=e39]: "25"
+          - generic [ref=e40]:
+            - generic [ref=e41]: Break (min)
+            - spinbutton [ref=e42]: "5"
+          - generic [ref=e43]:
+            - generic [ref=e44]: Long Break (min)
+            - spinbutton [ref=e45]: "15"
+      - generic [ref=e46]:
+        - heading "Tasks & Goals" [level=2] [ref=e47]
+        - generic [ref=e48]:
+          - textbox "What are you working on?" [ref=e49]
+          - button "Add" [ref=e50] [cursor=pointer]
+        - generic [ref=e52]: No tasks yet. Add one above!
+    - generic [ref=e53]:
+      - heading "Quality Trends" [level=2] [ref=e54]
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]: "-"
+          - generic [ref=e58]: Avg Focus Quality
+        - generic [ref=e59]:
+          - generic [ref=e60]: "-"
+          - generic [ref=e61]: Avg Rest Quality
+        - generic [ref=e62]:
+          - generic [ref=e63]: "0"
+          - generic [ref=e64]: Total Ratings
+        - generic [ref=e65]:
+          - generic [ref=e66]: "0"
+          - generic [ref=e67]: Skipped Pomodoros
+        - generic [ref=e68]:
+          - generic [ref=e69]: "0"
+          - generic [ref=e70]: Skipped Rests
+      - generic [ref=e71]:
+        - generic [ref=e72]: insights
+        - paragraph [ref=e73]: No quality ratings yet. Complete a session to start tracking!
+    - generic [ref=e74]:
+      - heading "Today's Progress" [level=2] [ref=e75]
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]: "0"
+          - generic [ref=e79]: Pomodoros
+        - generic [ref=e80]:
+          - generic [ref=e81]: 0h 0m
+          - generic [ref=e82]: Focus Time
+        - generic [ref=e83]:
+          - generic [ref=e84]: "0"
+          - generic [ref=e85]: Tasks Completed
+        - generic [ref=e86]:
+          - generic [ref=e87]: "0"
+          - generic [ref=e88]: Day Streak
+    - generic [ref=e91]:
+      - heading "Session History" [level=2] [ref=e92]
+      - generic [ref=e94]: No sessions yet. Start your first Pomodoro!
+      - generic [ref=e95]:
+        - button "download" [ref=e96] [cursor=pointer]:
+          - generic [ref=e97]: download
+        - button "upload" [ref=e98] [cursor=pointer]:
+          - generic [ref=e99]: upload
+  - generic [ref=e100]:
+    - generic [ref=e101]: visibility
+    - generic [ref=e102]: Focus Mode Active (ESC to exit)
+  - generic [ref=e103]:
+    - generic [ref=e105]: notifications
+    - generic [ref=e106]:
+      - generic [ref=e107]: Focus Mode Active
+      - generic [ref=e108]: Press ESC or Ctrl+F to exit
+  - text: ✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓ • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
+```
