@@ -4,7 +4,9 @@
   "description": "A beautiful, feature-rich Pomodoro timer application designed to help you maintain focus and boost productivity. Built with vanilla JavaScript, HTML, and CSS for maximum performance and portability.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
     "build": "npm run clean && npm run copy",
     "clean": "rm -rf dist",
     "copy": "mkdir -p dist && cp index.html styles.css app.js favicon.ico dist/ && cp -r fonts dist/ && cp -r media dist/ && cp -r services dist/",
