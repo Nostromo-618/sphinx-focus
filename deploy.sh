@@ -28,6 +28,10 @@ git show main:favicon.ico > favicon.ico
 echo "📁 Copying directories..."
 git checkout main -- fonts/ media/ services/ 2>/dev/null || true
 
+# Remove development files that shouldn't be in production
+echo "🧹 Cleaning development files..."
+rm -f package.json package-lock.json .gitignore .cursorrules gitattributes DEPLOYMENT.md CHANGELOG.md FIBONACCI-MODE.md README.md playwright.config.ts tests/
+
 # Add and commit
 echo "💾 Committing changes..."
 git add index.html styles.css app.js favicon.ico fonts/ media/ services/
