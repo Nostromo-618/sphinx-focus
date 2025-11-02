@@ -342,3 +342,8 @@ class BlurControl {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = BlurControl;
 }
+
+// Make BlurControl available globally in browser
+if (typeof window !== 'undefined') {
+    window.BlurControl = BlurControl;
+}
