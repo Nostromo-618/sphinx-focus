@@ -1654,6 +1654,116 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
 }
+/* ============================================
+   BlurControl Styles
+   ============================================ */
+
+/* Blur Control Layer - Overlay with backdrop blur */
+.blur-control-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9000;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+[data-theme="dark"] .blur-control-layer {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Focused elements - kept sharp and interactive */
+.blur-control-focused {
+    position: relative !important;
+    z-index: 9001 !important;
+    pointer-events: auto !important;
+    filter: none !important;
+    transition: all 0.3s ease;
+}
+
+/* Optional highlight for focused elements */
+.blur-control-focused.blur-control-highlight {
+    box-shadow: 0 0 0 3px var(--primary-color),
+                0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure focused elements maintain their border radius */
+.blur-control-focused:not([style*="border-radius"]) {
+    border-radius: 12px;
+}
+
+/* Animation for blur activation */
+@keyframes blurFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+}
+
+.blur-control-layer {
+    animation: blurFadeIn 0.3s ease;
+}
+
+/* Focus mode indicator */
+.blur-control-indicator {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px 16px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9002;
+    opacity: 0;
+    transform: translateX(300px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.blur-control-indicator.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.blur-control-indicator .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--primary-color);
+}
+
+.blur-control-indicator-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Mobile adjustments for blur control */
+@media (max-width: 480px) {
+    .blur-control-indicator {
+        top: 70px;
+        right: 10px;
+        padding: 6px 12px;
+    }
+    
+    .blur-control-indicator-text {
+        font-size: 12px;
+    }
+}
+
 
 /* Extra small devices (phones in portrait, less than 480px) */
 @media (max-width: 480px) {

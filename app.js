@@ -45,6 +45,9 @@ let state = {
 
 let focusChart = null;
 let qualityChart = null;
+// BlurControl instance
+let blurControl = null;
+
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
@@ -95,6 +98,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             addTask();
         }
     });
+    
+    // Initialize BlurControl
+    initializeBlurControl();
 });
 
 // Theme Management
@@ -1336,6 +1342,12 @@ function handleKeyboard(e) {
     if (e.key === 's' && e.target.tagName !== 'INPUT') {
         skipSession();
     }
+    
+    // Ctrl+F to toggle focus mode
+    if (e.key === 'f' && (e.ctrlKey || e.metaKey) && e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+        toggleFocusMode();
+    }
 }
 
 // Quality Dialog Management
@@ -1408,4 +1420,171 @@ function closeQualityDialog() {
     modal.classList.remove('show');
     currentQualitySessionType = null;
     currentQualitySessionDuration = null;
+}
+
+// ============================================
+// BlurControl Integration
+// ============================================
+
+/**
+ * Initialize BlurControl instance
+ */
+function initializeBlurControl() {
+    blurControl = new BlurControl({
+        blurAmount: '10px',
+        transition: '0.4s ease',
+        backdropColor: 'rgba(0, 0, 0, 0.4)',
+        highlightFocused: true,
+        containerSelector: 'body'
+    });
+}
+
+/**
+ * Toggle focus mode - blur everything except timer
+ */
+function toggleFocusMode() {
+    if (!blurControl) {
+        initializeBlurControl();
+    }
+    
+    const isActive = blurControl.isBlurActive();
+    
+    if (isActive) {
+        deactivateFocusMode();
+    } else {
+        activateFocusMode();
+    }
+}
+
+/**
+ * Activate focus mode
+ */
+function activateFocusMode() {
+    if (!blurControl) {
+        initializeBlurControl();
+    }
+    
+    // Blur everything except timer and its controls
+    blurControl.activate([
+        '.timer-display',
+        '.timer-controls',
+        '.session-settings',
+        '#focusModeBtn',
+        '#focusModeIndicator'
+    ]);
+    
+    // Update button appearance
+    const btn = document.getElementById('focusModeBtn');
+    if (btn) {
+        btn.classList.add('active');
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+    }
+    
+    // Show indicator
+    const indicator = document.getElementById('focusModeIndicator');
+    if (indicator) {
+        indicator.classList.add('show');
+    }
+    
+    // Show notification
+    showNotification('Focus Mode Active', 'Press ESC or Ctrl+F to exit');
+}
+
+/**
+ * Deactivate focus mode
+ */
+function deactivateFocusMode() {
+    if (blurControl) {
+        blurControl.deactivate();
+    }
+    
+    // Update button appearance
+    const btn = document.getElementById('focusModeBtn');
+    if (btn) {
+        btn.classList.remove('active');
+        btn.style.background = '';
+        btn.style.color = '';
+    }
+    
+    // Hide indicator
+    const indicator = document.getElementById('focusModeIndicator');
+    if (indicator) {
+        indicator.classList.remove('show');
+    }
+}
+
+/**
+ * Focus on a specific task
+ * @param {number} taskId - Task ID to focus on
+ */
+function focusOnTask(taskId) {
+    if (!blurControl) {
+        initializeBlurControl();
+    }
+    
+    // Blur everything except the specific task and task input
+    blurControl.activate([
+        `.task-item[data-task-id="${taskId}"]`,
+        '.task-input-group',
+        '#focusModeBtn',
+        '#focusModeIndicator'
+    ]);
+    
+    // Update button and indicator
+    const btn = document.getElementById('focusModeBtn');
+    if (btn) {
+        btn.classList.add('active');
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+    }
+    
+    const indicator = document.getElementById('focusModeIndicator');
+    if (indicator) {
+        const indicatorText = indicator.querySelector('.blur-control-indicator-text');
+        if (indicatorText) {
+            indicatorText.textContent = 'Task Focus Active (ESC to exit)';
+        }
+        indicator.classList.add('show');
+    }
+}
+
+/**
+ * Focus on statistics section
+ */
+function focusOnStats() {
+    if (!blurControl) {
+        initializeBlurControl();
+    }
+    
+    blurControl.activate([
+        '.stats-grid',
+        '.chart-container',
+        '#focusModeBtn',
+        '#focusModeIndicator'
+    ]);
+    
+    updateFocusModeUI('Stats Focus Active (ESC to exit)');
+}
+
+/**
+ * Update focus mode UI elements
+ * @param {string} message - Message to display in indicator
+ */
+function updateFocusModeUI(message) {
+    const btn = document.getElementById('focusModeBtn');
+    if (btn) {
+        btn.classList.add('active');
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+    }
+    
+    const indicator = document.getElementById('focusModeIndicator');
+    if (indicator) {
+        const indicatorText = indicator.querySelector('.blur-control-indicator-text');
+        if (indicatorText) {
+            indicatorText.textContent = message;
+        }
+        indicator.classList.add('show');
+    }
 }

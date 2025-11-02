@@ -24,6 +24,9 @@
                 <button class="version-badge" onclick="openChangelog()" title="View changelog">
                     <span class="version-text">v<span id="appVersion"></span></span>
                 </button>
+                <button class="btn btn-secondary btn-icon" id="focusModeBtn" onclick="toggleFocusMode()" title="Focus Mode (Ctrl+F)">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
                 <button class="btn btn-secondary btn-icon" onclick="openStorageInfo()" title="Storage information">
                     <span class="material-symbols-outlined">info</span>
                 </button>
@@ -302,6 +305,12 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Focus Mode Indicator -->
+    <div class="blur-control-indicator" id="focusModeIndicator">
+        <span class="material-symbols-outlined">visibility</span>
+        <span class="blur-control-indicator-text">Focus Mode Active (ESC to exit)</span>
     </div>
 
     <!-- Notification -->
@@ -679,6 +688,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="services/encryptionService.js"></script>
     <script src="services/storageService.js"></script>
+    <script src="services/blurControl.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

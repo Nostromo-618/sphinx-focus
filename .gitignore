@@ -30,4 +30,5 @@ npm-debug.log*
 
 # Working documents
 DEPLOYMENT-PLAN.md
+BLURCONTROL-PLAN.md
 .env.*.local
