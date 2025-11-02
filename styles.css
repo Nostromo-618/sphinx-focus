@@ -775,10 +775,15 @@ body {
 }
 
 .modal-logo-img {
-    width: 180px;
+    width: 360px;
     height: auto;
-    filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
+    border-radius: 20px;
     background: transparent;
+    transition: filter 0.3s ease;
+}
+
+.modal-logo-img:hover {
+    filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
 }
 
 /* Disclaimer Modal */
@@ -874,7 +879,7 @@ body {
 /* Responsive disclaimer */
 @media (max-width: 768px) {
     .modal-logo-img {
-        width: 120px;
+        width: 240px;
     }
     
     .disclaimer-content {
