@@ -1,5 +1,5 @@
 // App Version
-const APP_VERSION = '2.1.2';
+const APP_VERSION = '2.2.0';
 
 // State Management
 let state = {
@@ -7,12 +7,28 @@ let state = {
         minutes: 25,
         seconds: 0,
         isRunning: false,
+        hasStarted: false,
         mode: 'work', // work, break, longBreak
         sessionCount: 0,
         interval: null,
         totalSeconds: 25 * 60,
         currentSeconds: 25 * 60,
         lastUpdateTime: null // Track when timer was last updated
+    },
+    timerMode: 'pomodoro', // 'pomodoro' | 'fibonacci'
+    fibonacci: {
+        enabled: false,
+        hasSeenModal: false, // Track if user has seen explanation modal
+        currentIndex: 0, // Index in fibonacci array
+        sequence: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
+        customization: {
+            decreaseThreshold: 7,    // Rating below this decreases
+            increaseThreshold: 10,   // Rating at this increases
+            minDuration: 1,          // Minimum minutes
+            maxDuration: 89,         // Maximum minutes
+            excludedNumbers: []      // Numbers to skip in sequence
+        },
+        lastInterval: 1 // Remember last used interval
     },
     settings: {
         workDuration: 25,
@@ -62,7 +78,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     await restoreTimerState(); // Restore timer if it was running
     updateDisplay();
     updateStatistics();
-    updateSessionHistory();
     updateTaskList();
     initializeChart();
     initializeQualityChart();
@@ -82,6 +97,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateToggleSwitch('autoPomodoroToggle', state.settings.autoPomodoro);
     updateToggleSwitch('resumeTimerToggle', state.settings.resumeTimer);
     updateToggleSwitch('qualityDialogToggle', state.settings.qualityDialog);
+    
+    // Initialize Fibonacci mode UI
+    updateTimerModeDisplay();
+    updateModeToggleButtons();
+    updateSessionSettingsVisibility();
+    updateFibonacciSettingsButtonVisibility();
     
     // Add event listeners for settings changes
     document.getElementById('workDuration').addEventListener('change', updateSettings);
@@ -197,6 +218,7 @@ function toggleTimer() {
 
 function startTimer() {
     state.timer.isRunning = true;
+    state.timer.hasStarted = true;
     state.timer.lastUpdateTime = Date.now();
     updateStartButton();
     saveTimerState(); // Save immediately when starting
@@ -230,14 +252,20 @@ function pauseTimer() {
 
 function resetTimer() {
     pauseTimer();
+    state.timer.hasStarted = false;
     const duration = getDurationForMode(state.timer.mode);
-    state.timer.minutes = duration;
-    state.timer.seconds = 0;
-    state.timer.totalSeconds = duration * 60;
-    state.timer.currentSeconds = duration * 60;
+    
+    // Handle decimal durations (for Fibonacci breaks)
+    const totalSeconds = Math.round(duration * 60);
+    state.timer.minutes = Math.floor(totalSeconds / 60);
+    state.timer.seconds = totalSeconds % 60;
+    state.timer.totalSeconds = totalSeconds;
+    state.timer.currentSeconds = totalSeconds;
     state.timer.lastUpdateTime = null;
+    
     updateDisplay();
     updateProgress();
+    updateStartButton();
     saveTimerState(); // Save reset state
 }
 
@@ -292,7 +320,6 @@ function completeSession() {
         state.statistics.todayPomodoros++;
         state.statistics.todayFocusTime += state.settings.workDuration;
         updateStatistics();
-        updateSessionHistory();
         saveState();
         
         qualitySessionType = 'focus';
@@ -346,6 +373,24 @@ function nextSession() {
 }
 
 function getDurationForMode(mode) {
+    // If Fibonacci mode is enabled, use Fibonacci durations
+    if (state.fibonacci.enabled && state.timerMode === 'fibonacci') {
+        switch(mode) {
+            case 'work':
+                return getFibonacciDuration();
+            case 'break':
+            case 'longBreak':
+                const focusDuration = getFibonacciDuration();
+                // Calculate break in decimal minutes (e.g., 0.2, 0.4, 0.6)
+                const breakDecimal = calculateFibonacciBreak(focusDuration);
+                // Return as decimal - resetTimer will handle conversion to minutes:seconds
+                return breakDecimal;
+            default:
+                return getFibonacciDuration();
+        }
+    }
+    
+    // Standard Pomodoro mode
     switch(mode) {
         case 'work':
             return state.settings.workDuration;
@@ -403,6 +448,8 @@ function updateStartButton() {
     const btn = document.getElementById('startBtn');
     if (state.timer.isRunning) {
         btn.innerHTML = '<span class="material-symbols-outlined">pause</span><span>Pause</span>';
+    } else if (state.timer.hasStarted) {
+        btn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span><span>Resume</span>';
     } else {
         btn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span><span>Start</span>';
     }
@@ -682,8 +729,8 @@ function initializeQualityChart() {
                     borderColor: 'rgba(99, 102, 241, 1)',
                     backgroundColor: 'rgba(99, 102, 241, 0.1)',
                     borderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     pointBackgroundColor: 'rgba(99, 102, 241, 1)',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
@@ -697,8 +744,8 @@ function initializeQualityChart() {
                     borderColor: 'rgba(16, 185, 129, 1)',
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     borderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     pointBackgroundColor: 'rgba(16, 185, 129, 1)',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
@@ -721,7 +768,7 @@ function initializeQualityChart() {
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        padding: 15,
+                        padding: 10,
                         font: {
                             size: 13
                         }
@@ -746,7 +793,7 @@ function initializeQualityChart() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 10,
+                    suggestedMax: 10.5,
                     ticks: {
                         stepSize: 1
                     },
@@ -763,6 +810,14 @@ function initializeQualityChart() {
                         maxRotation: 45,
                         minRotation: 0
                     }
+                }
+            },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
                 }
             }
         }
@@ -849,32 +904,6 @@ function updateQualityStatistics() {
 }
 
 // Session History
-function updateSessionHistory() {
-    const historyContainer = document.getElementById('sessionHistory');
-    
-    if (state.sessions.length === 0) {
-        historyContainer.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">No sessions yet. Start your first Pomodoro!</div>';
-        return;
-    }
-    
-    const recentSessions = state.sessions.slice(-10).reverse();
-    
-    historyContainer.innerHTML = recentSessions.map(session => {
-        const date = new Date(session.date);
-        const timeStr = date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-        const dateStr = date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-        
-        return `
-            <div class="session-item">
-                <div class="session-info">
-                    <div class="session-date">${dateStr} at ${timeStr}</div>
-                    <div class="session-details">Focus Session</div>
-                </div>
-                <div class="session-duration">${session.duration} min</div>
-            </div>
-        `;
-    }).join('');
-}
 
 // Settings
 function openSettings() {
@@ -893,6 +922,37 @@ function openStorageInfo() {
 
 function closeStorageInfo() {
     document.getElementById('storageInfoModal').classList.remove('show');
+}
+
+// Switch between info tabs
+function switchInfoTab(tabName) {
+    console.log('Switching to tab:', tabName);
+    
+    // Update tab buttons
+    const tabs = document.querySelectorAll('.info-tab');
+    console.log('Found tabs:', tabs.length);
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    const activeTab = document.querySelector(`.info-tab[data-tab="${tabName}"]`);
+    console.log('Active tab:', activeTab);
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
+    
+    // Update tab content
+    const contents = document.querySelectorAll('.info-tab-content');
+    console.log('Found content sections:', contents.length);
+    contents.forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    const activeContent = document.getElementById(`${tabName}TabContent`);
+    console.log('Active content:', activeContent);
+    if (activeContent) {
+        activeContent.classList.add('active');
+    }
 }
 
 // Update storage usage display
@@ -1050,6 +1110,7 @@ function saveTimerState() {
         minutes: state.timer.minutes,
         seconds: state.timer.seconds,
         isRunning: state.timer.isRunning,
+        hasStarted: state.timer.hasStarted,
         mode: state.timer.mode,
         sessionCount: state.timer.sessionCount,
         totalSeconds: state.timer.totalSeconds,
@@ -1075,6 +1136,7 @@ async function restoreTimerState() {
                 state.timer.minutes = 0;
                 state.timer.seconds = 0;
                 state.timer.isRunning = false;
+                state.timer.hasStarted = true;
                 completeSession();
             } else {
                 // Update timer with elapsed time
@@ -1084,6 +1146,7 @@ async function restoreTimerState() {
                 state.timer.totalSeconds = timerData.totalSeconds;
                 state.timer.mode = timerData.mode;
                 state.timer.sessionCount = timerData.sessionCount;
+                state.timer.hasStarted = true;
                 
                 // Resume timer
                 startTimer();
@@ -1101,10 +1164,12 @@ async function restoreTimerState() {
             state.timer.sessionCount = timerData.sessionCount;
             state.timer.totalSeconds = timerData.totalSeconds;
             state.timer.currentSeconds = timerData.currentSeconds;
+            state.timer.hasStarted = timerData.hasStarted || false;
         }
         
         updateTimerMode();
         updateProgress();
+        updateStartButton();
     }
 }
 
@@ -1176,6 +1241,11 @@ async function loadState() {
                     ...loadedState.timer,
                     isRunning: false,
                     interval: null
+                },
+                timerMode: loadedState.timerMode || 'pomodoro',
+                fibonacci: {
+                    ...state.fibonacci,
+                    ...loadedState.fibonacci
                 },
                 settings: {
                     ...state.settings,
@@ -1325,6 +1395,19 @@ function closeModalOnBackgroundClick(event, modalId, closeFunction) {
     }
 }
 
+// Quality Dialog Background Click Handler (with Fibonacci mode check)
+function closeQualityDialogOnBackgroundClick(event) {
+    // Only close if clicking directly on the modal background
+    if (event.target.id === 'qualityDialogModal') {
+        // In Fibonacci mode, prevent closing for focus sessions
+        if (state.fibonacci.enabled && state.timerMode === 'fibonacci' && currentQualitySessionType === 'focus') {
+            showNotification('Rating Required', 'Please rate your focus session to continue in Fibonacci Mode');
+            return;
+        }
+        closeQualityDialog();
+    }
+}
+
 // Keyboard Shortcuts
 function handleKeyboard(e) {
     // Space bar to start/pause
@@ -1401,6 +1484,12 @@ function submitQualityRating() {
     };
     
     state.qualityRatings.push(rating);
+    
+    // Adjust Fibonacci interval if in Fibonacci mode and rating is for focus session
+    if (state.fibonacci.enabled && state.timerMode === 'fibonacci' && currentQualitySessionType === 'focus') {
+        adjustFibonacciInterval(quality);
+    }
+    
     saveState();
     
     // Update quality chart if it exists
@@ -1412,6 +1501,11 @@ function submitQualityRating() {
 }
 
 function skipQualityRating() {
+    // In Fibonacci mode, don't allow skipping - rating is required
+    if (state.fibonacci.enabled && state.timerMode === 'fibonacci' && currentQualitySessionType === 'focus') {
+        showNotification('Rating Required', 'Please rate your focus session to continue in Fibonacci Mode');
+        return;
+    }
     closeQualityDialog();
 }
 
@@ -1420,6 +1514,279 @@ function closeQualityDialog() {
     modal.classList.remove('show');
     currentQualitySessionType = null;
     currentQualitySessionDuration = null;
+}
+
+// ============================================
+// Fibonacci Guided Mode Functions
+// ============================================
+
+/**
+ * Get current Fibonacci duration based on index
+ */
+function getFibonacciDuration() {
+    const index = state.fibonacci.currentIndex;
+    return state.fibonacci.sequence[index];
+}
+
+/**
+ * Calculate break duration based on focus time (1:5 ratio)
+ */
+function calculateFibonacciBreak(focusMinutes) {
+    // 1:5 ratio - for every 5 minutes of focus, 1 minute of break
+    const breakMinutes = focusMinutes / 5;
+    // Round to 1 decimal place, minimum 0.2 minutes (12 seconds)
+    return Math.max(0.2, Math.round(breakMinutes * 10) / 10);
+}
+
+/**
+ * Adjust Fibonacci interval based on quality rating
+ */
+function adjustFibonacciInterval(rating) {
+    if (!state.fibonacci.enabled) return;
+    
+    const { decreaseThreshold, increaseThreshold } = state.fibonacci.customization;
+    const maxIndex = state.fibonacci.sequence.length - 1;
+    
+    // Decrease if rating below threshold and not at minimum
+    if (rating < decreaseThreshold && state.fibonacci.currentIndex > 0) {
+        state.fibonacci.currentIndex--;
+        showNotification('Fibonacci Adjusted', `Decreased to ${getFibonacciDuration()} minutes`);
+    }
+    // Increase if rating at max threshold and not at maximum
+    else if (rating >= increaseThreshold && state.fibonacci.currentIndex < maxIndex) {
+        state.fibonacci.currentIndex++;
+        showNotification('Fibonacci Adjusted', `Increased to ${getFibonacciDuration()} minutes`);
+    }
+    // 8-9 stays same (no notification needed)
+    
+    // Remember last interval
+    state.fibonacci.lastInterval = getFibonacciDuration();
+    saveState();
+}
+
+/**
+ * Toggle Fibonacci mode on/off
+ */
+function toggleFibonacciMode() {
+    // If already in Fibonacci mode, switch to Pomodoro
+    if (state.timerMode === 'fibonacci') {
+        switchToPomodoro();
+        return;
+    }
+    
+    // If timer is running, ask for confirmation
+    if (state.timer.isRunning) {
+        if (!confirm('Timer is currently running. Do you want to switch to Fibonacci Mode? This will reset the current session.')) {
+            return;
+        }
+        pauseTimer();
+    }
+    
+    // First time activation - show modal
+    if (!state.fibonacci.hasSeenModal) {
+        state.fibonacci.hasSeenModal = true;
+        openFibonacciModal();
+    } else {
+        // Direct activation for subsequent uses
+        activateFibonacciMode();
+    }
+}
+
+/**
+ * Actually activate Fibonacci mode (called from modal or toggle)
+ */
+function activateFibonacciMode() {
+    state.timerMode = 'fibonacci';
+    state.fibonacci.enabled = true;
+    
+    // Auto-enable Quality Dialog
+    if (!state.settings.qualityDialog) {
+        state.settings.qualityDialog = true;
+        updateToggleSwitch('qualityDialogToggle', true);
+        showNotification('Quality Dialog Enabled', 'Required for Fibonacci Guided Mode');
+    }
+    
+    // Update UI
+    updateTimerModeDisplay();
+    updateModeToggleButtons();
+    updateSessionSettingsVisibility();
+    updateFibonacciSettingsButtonVisibility();
+    
+    // Reset timer with Fibonacci duration
+    resetTimer();
+    
+    saveState();
+    closeFibonacciModal();
+    showNotification('Fibonacci Mode Active', `Starting with ${getFibonacciDuration()} minute sessions`);
+}
+
+/**
+ * Switch to Pomodoro mode
+ */
+function switchToPomodoro() {
+    // If already in Pomodoro mode, do nothing
+    if (state.timerMode === 'pomodoro') {
+        return;
+    }
+    
+    // If timer is running, ask for confirmation
+    if (state.timer.isRunning) {
+        if (!confirm('Timer is currently running. Do you want to switch to Pomodoro Mode? This will reset the current session.')) {
+            return;
+        }
+        pauseTimer();
+    }
+    
+    state.timerMode = 'pomodoro';
+    state.fibonacci.enabled = false;
+    
+    // Update UI
+    updateTimerModeDisplay();
+    updateModeToggleButtons();
+    updateSessionSettingsVisibility();
+    updateFibonacciSettingsButtonVisibility();
+    
+    // Reset timer with Pomodoro duration
+    resetTimer();
+    
+    saveState();
+    showNotification('Pomodoro Mode Active', 'Using standard Pomodoro intervals');
+}
+
+/**
+ * Update timer mode display (card title)
+ */
+function updateTimerModeDisplay() {
+    const titleElement = document.getElementById('timerModeTitle');
+    if (titleElement) {
+        titleElement.textContent = state.timerMode === 'fibonacci'
+            ? 'Fibonacci Guided Mode'
+            : 'Pomodoro Timer';
+    }
+}
+
+/**
+ * Update mode toggle button states
+ */
+function updateModeToggleButtons() {
+    const pomodoroBtn = document.getElementById('pomodoroModeBtn');
+    const fibonacciBtn = document.getElementById('fibonacciModeBtn');
+    
+    if (pomodoroBtn && fibonacciBtn) {
+        if (state.timerMode === 'fibonacci') {
+            pomodoroBtn.classList.remove('active');
+            fibonacciBtn.classList.add('active');
+        } else {
+            pomodoroBtn.classList.add('active');
+            fibonacciBtn.classList.remove('active');
+        }
+    }
+}
+
+/**
+ * Update session settings visibility based on mode
+ */
+function updateSessionSettingsVisibility() {
+    const sessionSettings = document.querySelector('.session-settings');
+    if (sessionSettings) {
+        if (state.timerMode === 'fibonacci') {
+            sessionSettings.style.display = 'none';
+        } else {
+            sessionSettings.style.display = 'grid';
+        }
+    }
+}
+
+/**
+ * Update Fibonacci settings button visibility
+ */
+function updateFibonacciSettingsButtonVisibility() {
+    const settingsBtn = document.getElementById('fibonacciSettingsBtn');
+    if (settingsBtn) {
+        if (state.timerMode === 'fibonacci') {
+            settingsBtn.style.display = 'flex';
+        } else {
+            settingsBtn.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Open Fibonacci explanation modal
+ */
+function openFibonacciModal() {
+    const modal = document.getElementById('fibonacciModal');
+    if (modal) {
+        // Load current customization values
+        document.getElementById('fibDecreaseThreshold').value = state.fibonacci.customization.decreaseThreshold;
+        document.getElementById('fibIncreaseThreshold').value = state.fibonacci.customization.increaseThreshold;
+        document.getElementById('fibMinDuration').value = state.fibonacci.customization.minDuration;
+        document.getElementById('fibMaxDuration').value = state.fibonacci.customization.maxDuration;
+        
+        const activateBtn = document.getElementById('activateFibBtn');
+        if (state.fibonacci.enabled) {
+            if (activateBtn) activateBtn.style.display = 'none';
+        } else {
+            if (activateBtn) activateBtn.style.display = 'inline-flex';
+        }
+        
+        modal.classList.add('show');
+    }
+}
+
+/**
+ * Close Fibonacci modal
+ */
+function closeFibonacciModal() {
+    const modal = document.getElementById('fibonacciModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+function showFibInfo() {
+    closeFibonacciModal();
+    openStorageInfo();
+    switchInfoTab('fibonacci');
+}
+
+/**
+ * Save Fibonacci customization settings
+ */
+function saveFibonacciCustomization() {
+    const decreaseThreshold = parseInt(document.getElementById('fibDecreaseThreshold').value);
+    const increaseThreshold = parseInt(document.getElementById('fibIncreaseThreshold').value);
+    const minDuration = parseInt(document.getElementById('fibMinDuration').value);
+    const maxDuration = parseInt(document.getElementById('fibMaxDuration').value);
+    
+    // Validation
+    if (decreaseThreshold >= increaseThreshold) {
+        showNotification('Invalid Settings', 'Decrease threshold must be less than increase threshold');
+        return;
+    }
+    
+    if (minDuration >= maxDuration) {
+        showNotification('Invalid Settings', 'Min duration must be less than max duration');
+        return;
+    }
+    
+    // Update state
+    state.fibonacci.customization.decreaseThreshold = decreaseThreshold;
+    state.fibonacci.customization.increaseThreshold = increaseThreshold;
+    state.fibonacci.customization.minDuration = minDuration;
+    state.fibonacci.customization.maxDuration = maxDuration;
+    
+    // Filter sequence based on min/max
+    const fullSequence = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+    state.fibonacci.sequence = fullSequence.filter(num => num >= minDuration && num <= maxDuration);
+    
+    // Adjust current index if needed
+    if (state.fibonacci.currentIndex >= state.fibonacci.sequence.length) {
+        state.fibonacci.currentIndex = state.fibonacci.sequence.length - 1;
+    }
+    
+    saveState();
+    showNotification('Settings Saved', 'Fibonacci customization updated');
 }
 
 // ============================================

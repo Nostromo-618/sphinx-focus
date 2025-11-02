@@ -58,7 +58,22 @@
         <div class="main-grid">
             <!-- Timer Section -->
             <div class="card">
-                <h2 class="card-title">Pomodoro Timer</h2>
+                <div class="card-header-with-toggle">
+                    <h2 class="card-title" id="timerModeTitle">Pomodoro Timer</h2>
+                    <div class="mode-controls">
+                        <div class="mode-toggle-buttons">
+                            <button class="mode-toggle-btn active" id="pomodoroModeBtn" onclick="switchToPomodoro()" title="Pomodoro Mode">
+                                <span class="material-symbols-outlined">schedule</span>
+                            </button>
+                            <button class="mode-toggle-btn" id="fibonacciModeBtn" onclick="toggleFibonacciMode()" title="Fibonacci Mode">
+                                <span class="material-symbols-outlined">functions</span>
+                            </button>
+                        </div>
+                        <button class="mode-settings-btn" id="fibonacciSettingsBtn" onclick="openFibonacciModal()" title="Fibonacci Settings" style="display: none;">
+                            <span class="material-symbols-outlined">settings</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="timer-display">
                     <div class="timer-mode work" id="timerMode">Focus Time</div>
                     <div class="timer-time" id="timerDisplay">25:00</div>
@@ -172,7 +187,7 @@
 
         <!-- Statistics Section -->
         <div class="card">
-            <h2 class="card-title">Today's Progress</h2>
+            <h2 class="card-title">Weekly Progress</h2>
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-value" id="todayPomodoros">0</div>
@@ -196,22 +211,6 @@
             </div>
         </div>
 
-        <!-- Session History -->
-        <div class="card">
-            <h2 class="card-title">Session History</h2>
-            <div class="session-history" id="sessionHistory"></div>
-            <div class="export-import-controls">
-                <button class="btn btn-secondary" onclick="exportData()">
-                    <span class="material-symbols-outlined">download</span>
-                    <span>Export Data</span>
-                </button>
-                <button class="btn btn-secondary" onclick="importData()">
-                    <span class="material-symbols-outlined">upload</span>
-                    <span>Import Data</span>
-                </button>
-                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
-            </div>
-        </div>
     </div>
 
     <!-- Settings Modal -->
@@ -303,6 +302,21 @@
                     <span class="material-symbols-outlined">delete</span>
                     <span>Clear All Data</span>
                 </button>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Data Management</h3>
+                    <div class="export-import-controls">
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            <span class="material-symbols-outlined">download</span>
+                            <span>Export Data</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="importData()">
+                            <span class="material-symbols-outlined">upload</span>
+                            <span>Import Data</span>
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -351,20 +365,34 @@
         </div>
     </div>
 
-    <!-- Storage Info Modal -->
+    <!-- Storage Info Modal with Tabs -->
     <div class="settings-modal" id="storageInfoModal" onclick="closeModalOnBackgroundClick(event, 'storageInfoModal', closeStorageInfo)">
-        <div class="modal-content">
+        <div class="modal-content info-modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">
-                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">storage</span>
-                    Storage Management
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">info</span>
+                    Information & Guides
                 </h2>
                 <button class="modal-close" onclick="closeStorageInfo()">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             
-            <div class="storage-info-content">
+            <!-- Tab Navigation -->
+            <div class="info-tabs">
+                <button class="info-tab active" onclick="switchInfoTab('storage')" data-tab="storage">
+                    <span class="material-symbols-outlined">storage</span>
+                    <span>Storage</span>
+                </button>
+                <button class="info-tab" onclick="switchInfoTab('fibonacci')" data-tab="fibonacci">
+                    <span class="material-symbols-outlined">functions</span>
+                    <span>Fibonacci Mode</span>
+                </button>
+            </div>
+            
+            <!-- Storage Tab Content -->
+            <div class="info-tab-content active" id="storageTabContent">
+                <div class="storage-info-content">
                 <div class="storage-info-section">
                     <h3>How Storage Works</h3>
                     <p>Sphinx Focus stores all your data <strong>locally in your browser</strong> using encrypted localStorage. Your data never leaves your device.</p>
@@ -440,6 +468,108 @@
                 <div class="storage-info-section storage-info-note">
                     <span class="material-symbols-outlined" style="font-size: 20px; vertical-align: middle;">info</span>
                     <span><strong>Note:</strong> Your active tasks, settings, and preferences are never automatically deleted.</span>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Fibonacci Tab Content -->
+            <div class="info-tab-content" id="fibonacciTabContent">
+                <div class="fibonacci-info-content">
+                    <div class="fibonacci-section">
+                        <h3>How It Works</h3>
+                        <p>Fibonacci Guided Mode is an adaptive focus timer that automatically adjusts your session length based on your quality ratings. It uses the Fibonacci sequence to progressively increase or decrease your focus time.</p>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>The Fibonacci Sequence</h3>
+                        <div class="fibonacci-sequence-display">
+                            <span>1</span>
+                            <span>2</span>
+                            <span>3</span>
+                            <span>5</span>
+                            <span>8</span>
+                            <span>13</span>
+                            <span>21</span>
+                            <span>34</span>
+                            <span>55</span>
+                            <span>89</span>
+                        </div>
+                        <p class="fibonacci-note">Focus sessions range from 1 to 89 minutes</p>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>Automatic Adjustment Rules</h3>
+                        <div class="adjustment-rules">
+                            <div class="rule-item rule-decrease">
+                                <span class="rule-icon material-symbols-outlined">trending_down</span>
+                                <div class="rule-content">
+                                    <strong>Rating &lt; 7</strong>
+                                    <p>Decrease to previous Fibonacci interval</p>
+                                </div>
+                            </div>
+                            <div class="rule-item rule-maintain">
+                                <span class="rule-icon material-symbols-outlined">trending_flat</span>
+                                <div class="rule-content">
+                                    <strong>Rating 8-9</strong>
+                                    <p>Stay at current interval</p>
+                                </div>
+                            </div>
+                            <div class="rule-item rule-increase">
+                                <span class="rule-icon material-symbols-outlined">trending_up</span>
+                                <div class="rule-content">
+                                    <strong>Rating 10</strong>
+                                    <p>Increase to next Fibonacci interval</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>Break Duration</h3>
+                        <p>Breaks are automatically calculated using a 1:5 ratio from your focus time. For example:</p>
+                        <ul class="break-examples">
+                            <li>1 min focus = 12 seconds break</li>
+                            <li>2 min focus = 24 seconds break</li>
+                            <li>3 min focus = 36 seconds break</li>
+                            <li>5 min focus = 1 minute break</li>
+                            <li>8 min focus = 1 min 36 sec break</li>
+                            <li>13 min focus = 2 min 36 sec break</li>
+                            <li>21 min focus = 4 min 12 sec break</li>
+                            <li>34 min focus = 6 min 48 sec break</li>
+                            <li>55 min focus = 11 minutes break</li>
+                            <li>89 min focus = 17 min 48 sec break</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>Requirements</h3>
+                        <div class="fibonacci-requirement">
+                            <span class="material-symbols-outlined">info</span>
+                            <p><strong>Quality Dialog must be enabled</strong> for Fibonacci Guided Mode to work. It will be automatically enabled when you activate this mode.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>Getting Started</h3>
+                        <ol class="fibonacci-steps">
+                            <li>Click the <strong>Functions icon (ƒ)</strong> in the timer card header</li>
+                            <li>The mode will activate and Quality Dialog will be enabled</li>
+                            <li>Start your first 1-minute focus session</li>
+                            <li>After completion, rate your focus quality (1-10)</li>
+                            <li>The system automatically adjusts your next session length</li>
+                            <li>Continue the cycle - the timer adapts to your optimal focus duration</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="fibonacci-section">
+                        <h3>Customization</h3>
+                        <p>Click the <strong>Settings icon (⚙️)</strong> next to the mode toggle to customize:</p>
+                        <ul class="break-examples">
+                            <li>Rating thresholds for adjustments</li>
+                            <li>Minimum and maximum duration limits</li>
+                            <li>Excluded numbers from the sequence</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -641,7 +771,7 @@
     </div>
 
     <!-- Quality Dialog Modal -->
-    <div class="quality-dialog-modal" id="qualityDialogModal" onclick="closeModalOnBackgroundClick(event, 'qualityDialogModal', closeQualityDialog)">
+    <div class="quality-dialog-modal" id="qualityDialogModal" onclick="closeQualityDialogOnBackgroundClick(event)">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">
@@ -679,6 +809,72 @@
                     <button class="btn btn-primary" onclick="submitQualityRating()">
                         <span class="material-symbols-outlined">check</span>
                         <span>Submit</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fibonacci Guided Mode Modal -->
+    <div class="settings-modal" id="fibonacciModal" onclick="closeModalOnBackgroundClick(event, 'fibonacciModal', closeFibonacciModal)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">functions</span>
+                    Fibonacci Mode Settings
+                </h2>
+                <button class="modal-info" onclick="showFibInfo()" title="Learn more">
+                    <span class="material-symbols-outlined">info</span>
+                </button>
+                <button class="modal-close" onclick="closeFibonacciModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="fibonacci-modal-content">
+                
+                <div class="fibonacci-section">
+                    <h3>Requirements</h3>
+                    <div class="fibonacci-requirement">
+                        <span class="material-symbols-outlined">info</span>
+                        <p><strong>Quality Dialog must be enabled</strong> for Fibonacci Guided Mode to work. It will be automatically enabled when you activate this mode.</p>
+                    </div>
+                </div>
+                
+                <div class="fibonacci-section">
+                    <h3>Settings</h3>
+                    <div class="customization-grid">
+                        <div class="custom-item">
+                            <label>Decrease Threshold</label>
+                            <input type="number" class="setting-input" id="fibDecreaseThreshold" value="7" min="1" max="10">
+                        </div>
+                        <div class="custom-item">
+                            <label>Increase Threshold</label>
+                            <input type="number" class="setting-input" id="fibIncreaseThreshold" value="10" min="1" max="10">
+                        </div>
+                        <div class="custom-item">
+                            <label>Min Duration (min)</label>
+                            <input type="number" class="setting-input" id="fibMinDuration" value="1" min="1" max="89">
+                        </div>
+                        <div class="custom-item">
+                            <label>Max Duration (min)</label>
+                            <input type="number" class="setting-input" id="fibMaxDuration" value="89" min="1" max="89">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fibonacci-actions">
+                    <button class="btn btn-primary" onclick="saveFibonacciCustomization()">
+                        <span class="material-symbols-outlined">save</span>
+                        <span>Save</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeFibonacciModal()">
+                        <span class="material-symbols-outlined">close</span>
+                        <span>Close</span>
+                    </button>
+                    <button class="btn btn-primary" id="activateFibBtn" onclick="activateFibonacciMode()">
+                        <span class="material-symbols-outlined">check</span>
+                        <span>Activate Fibonacci Mode</span>
                     </button>
                 </div>
             </div>
