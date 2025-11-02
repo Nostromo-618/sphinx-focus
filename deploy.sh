@@ -28,9 +28,9 @@ git show main:favicon.ico > favicon.ico
 echo "📁 Copying directories..."
 git checkout main -- fonts/ media/ services/ 2>/dev/null || true
 
-# Remove development files that shouldn't be in production
+# Remove development files and directories that shouldn't be in production
 echo "🧹 Cleaning development files..."
-rm -f package.json package-lock.json .gitignore .cursorrules gitattributes DEPLOYMENT.md CHANGELOG.md FIBONACCI-MODE.md README.md playwright.config.ts tests/
+rm -rf node_modules dist tests/ .git .github .vscode coverage playwright-report test-results .cursorrules .gitignore package.json package-lock.json .DS_Store DEPLOYMENT.md CHANGELOG.md FIBONACCI-MODE.md README.md playwright.config.ts
 
 # Add and commit all changes (including deletions)
 echo "💾 Committing changes..."

@@ -279,9 +279,10 @@ The script will:
 2. 🔨 Build the project (`npm run build`)
 3. 🔀 Switch to gh-pages branch
 4. 📋 Copy all built files to root (index.html, styles.css, app.js, favicon.ico, fonts/, media/, services/)
-5. 💾 Commit changes with timestamp
-6. ⬆️ Push to GitHub
-7. 🔙 Return to main branch
+5. 🧹 Remove development files (package.json, node_modules, tests, docs, etc.) - keeps only runtime files
+6. 💾 Commit changes with timestamp
+7. ⬆️ Push to GitHub
+8. 🔙 Return to main branch
 
 **Note:** The deploy script is already executable. If you need to make it executable again:
 ```bash
@@ -422,7 +423,7 @@ git checkout main
 
 - Make sure all source files exist
 - Run `npm run clean && npm run build` to start fresh
-- Verify the build includes: `index.html`, `styles.css`, `app.js`, `favicon.ico`, `fonts/`, `media/`, `services/`
+- Verify the build includes: `index.html`, `styles.css`, `app.js`, `favicon.ico`, `fonts/`, `media/`, `services/` (development files like package.json, tests/, etc. are automatically removed during deployment)
 
 ### Deploy script issues
 
