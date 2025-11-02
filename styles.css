@@ -771,27 +771,12 @@ body {
 .modal-logo {
     text-align: center;
     margin-bottom: 24px;
-    animation: float 3s ease-in-out infinite;
 }
 
 .modal-logo-img {
     width: 180px;
     height: auto;
     filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
-    transition: transform 0.3s ease;
-}
-
-.modal-logo:hover .modal-logo-img {
-    transform: scale(1.05);
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
 }
 
 /* Disclaimer Modal */
