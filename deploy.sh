@@ -32,9 +32,9 @@ git checkout main -- fonts/ media/ services/ 2>/dev/null || true
 echo "🧹 Cleaning development files..."
 rm -f package.json package-lock.json .gitignore .cursorrules gitattributes DEPLOYMENT.md CHANGELOG.md FIBONACCI-MODE.md README.md playwright.config.ts tests/
 
-# Add and commit
+# Add and commit all changes (including deletions)
 echo "💾 Committing changes..."
-git add index.html styles.css app.js favicon.ico fonts/ media/ services/
+git add -A
 git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
 
 # Push to GitHub
