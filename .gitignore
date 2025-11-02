@@ -27,4 +27,7 @@ npm-debug.log*
 # Environment variables
 .env
 .env.local
+
+# Working documents
+DEPLOYMENT-PLAN.md
 .env.*.local
